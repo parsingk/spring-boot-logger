@@ -4,25 +4,10 @@
 ## 1. Setup
 
 
-build.gradle파일에 아래 줄 추가.
+~~build.gradle파일에 아래 줄 추가~~.
 ``` 
-repositories {
-    maven {
-        url "<url>"
-        name "Git"
-        credentials(HttpHeaderCredentials) {
-            name = 'Deploy-Token'
-            value = '<token>'
-        }
-        authentication {
-            header(HttpHeaderAuthentication)
-        }
-    }
-    mavenCentral()
-}
- 
  dependencies {  
-    implementation 'com.spring.boot.logger:logger:0.0.1-SNAPSHOT'
+    implementation 'com.spring.boot.logger:logger:0.5.0-SNAPSHOT'
  }
 ```
 
