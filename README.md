@@ -3,14 +3,6 @@
 ***
 ## 1. Setup
 
-
-~~build.gradle파일에 아래 줄 추가~~.
-``` 
- dependencies {  
-    implementation 'com.spring.boot.logger:logger:0.5.0-SNAPSHOT'
- }
-```
-
 Main Application Class에 @EnableAspectJAutoProxy, @EnableLogger 추가
 ```
 @EnableAspectJAutoProxy
@@ -31,9 +23,6 @@ application.yml에 profile 별 service, logging 추가.
 GCP stackdriver로 내보낸다면 logging.type = stackdriver로 설정.  
 Request Parameter Key값에 따라 value를 masking하는 기능 추가. ( ****** 로 replace 된다.)
 ```
-// if profile is 'local'
-// service name can be 'anibear-local' or 'minifocex-local'
-
 service: <service-name-for-logging>
 logging:
    application:  // application log를 찍고 싶다면 설정.
