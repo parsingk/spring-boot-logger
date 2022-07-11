@@ -6,7 +6,8 @@ plugins {
 }
 
 group = 'io.github.parsingk'
-version = '0.1.0'
+archivesBaseName = "spring-boot-logger"
+version = '0.1.2'
 sourceCompatibility = '11'
 
 configurations {
@@ -15,8 +16,86 @@ configurations {
     }
 }
 
+jar {
+    enabled = false
+}
+
+task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
 repositories {
     mavenCentral()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication){
+
+            groupId = 'io.github.parsingk'
+            artifactId = 'spring-boot-logger'
+            version = '0.1.2'
+            from components.java
+
+            artifact javadocJar
+            artifact sourcesJar
+
+            pom {
+                name = 'spring-boot-logger'
+                description = 'Easy & Fast logging for JSON type on Spring boot, send Kinesis Data Stream.'
+                url = 'https://github.com/parsingk/spring-boot-logger'
+                inceptionYear = '2022'
+
+                licenses {
+                    license {
+                        name = 'Apache License 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'parsingk'
+                        name = 'Jongpil Park'
+                        email = 'whdvlf2006@gmail.com'
+                    }
+                }
+                scm {
+                    connection='scm:git:git:github.com/parsingk/spring-boot-logger.git'
+                    developerConnection='scm:git:https://github.com/parsingk/spring-boot-logger.git'
+                    url='https://github.com/parsingk/spring-boot-logger'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "ossrh"
+            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
+            }
+        }
+    }
+}
+
+ext."signing.keyId" = System.getenv('SIGN_KEY_ID')
+ext."signing.password" = System.getenv("SIGN_KEY_PASSWORD")
+ext."signing.secretKeyRingFile" = System.getenv("SIGN_KEY_FILE")
+
+signing {
+    sign configurations.archives
+    sign publishing.publications.mavenJava
 }
 
 dependencies {
