@@ -1,9 +1,13 @@
 
-#  spring-boot logger 
+#  Spring-Boot-Logger 
 ***
+
+JSON Type Logging Library using Spring AOP, Logback.  
+You can print your application log or what you want to, also send to Kinesis Data Streams.
+
 ## 1. Setup
 
-Main Application Class에 @EnableAspectJAutoProxy, @EnableLogger 추가
+Add @EnableAspectJAutoProxy, @EnableLogger in your main class
 ```
 @EnableAspectJAutoProxy
 @EnableLogger
@@ -17,33 +21,30 @@ public class Application {
 }
 ```
 
-application.yml에 profile 별 service, logging 추가.
-   
-기본 json 포맷출력 logging.type = json로 설정.   
-GCP stackdriver로 내보낸다면 logging.type = stackdriver로 설정.  
-Request Parameter Key값에 따라 value를 masking하는 기능 추가. ( ****** 로 replace 된다.)
+### application.yaml settings.
+
 ```
-service: <service-name-for-logging>
 logging:
-   application:  // application log를 찍고 싶다면 설정.
+   service: <service-name-for-logging>
+   application:                        // if you want to print application log.
      on-log: true (default false)
-     type: json or stackdriver  
-   aws:
+     type: json or stackdriver         // normal json or GCP stackdriver
+   aws:                                // if you want to send your log to Kinesis Data Streams.
      credentials:
        accessKey: ${AWS_ACCESS_KEY}
        secretkey: ${AWS_SECRET_KEY}
-     kinesis:   // log를 Kinesis Datastream으로 보내고 싶다면 설정.
+     kinesis:
        producer:
          produce: true (default false)
          region: ${region}
          streamName: ${streamName}
-   parameters:
+   parameters:                         // if need to hide value from request. 
      masking-keys: ${key1}, ${key2} ...
 
 ```
 
   
-logback-spring.xml console appender 설정
+### logback-spring.xml console appender settings.
 ```
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
@@ -62,10 +63,8 @@ logback-spring.xml console appender 설정
 
 ## 2. Application Log
 
- 여기서 application 로그는 API Request, Response에 대한 전체적인 로그를 말한다.  
- application 로그는 @RestController annotation을 가진 객체의 모든 메소드의 로그를 출력한다.
-
-만약, Application Log를 남기고 싶지 않은 API에 대해서는 메소드 상위에 @NoApplicationLog 어노테이션을 적으면 된다.
+ It is print API Request, Response Log by @RestController annotation.  
+If you do not want print log, use @NoApplicationLog on your method. 
 
 ```
     @NoApplicationLog
@@ -78,77 +77,75 @@ logback-spring.xml console appender 설정
 
 ## 3. General Log
 
-General Log는 로그를 남기고 싶은 위치와 남기고 싶은 변수들을 custom하게 찍을 수 있다.  
+It is for your custom log.
+You can print whatever, wherever.  
+Just create your Object Class and implements `ILogDTO`.
+
+**Examples :**
+```
+ 
+@Getter
+@SuperBuilder
+public class LogDTO implements ILogDTO {
+    private String name;
+    private Integer code;
+}
 
 ```
-    HomeService.java
-    
-    private final GLogger logger;
-    
-    public JSONObject home(JSONObject object) throws Exception {
-        JSONObject loginResult = new JSONObject();
-        loginResult = query.select1st(0, "PROC_USER_LOGIN_V3",
-                object.get("id").toString(), -1, -1, "", -1);
-
-
-        LogDTO homeLog = HomeLogDTO.HomeLog.
-                builder().
-                name("로그인").
-                coin(loginResult.getCoin()).
-                jewel(loginResult.getJewel()).
-                build();
-
-        logger.info(homeLog);   // @Alf4j 개발 또는 LogFactory로 개발 예정
-        
-        return loginResult;
-    }
 ```
-```
-    public class HomeLogDTO {
+    public class LoginLogDTO {
     
         @Getter
-        @SuperBuilder   // ILogDTO를 implement받으면 Builder로 안해도 된다.
+        @SuperBuilder
         public static class HomeLog extends LogDTO {
-            private Integer jewel;
+            private Long id;
             private Integer coin;
         }
     }
 ```
-
-General log DTO는 com.spring.boot.logger.ILogDTO객체를 implements 받는 객체여야 한다.
-
-
-## 4. Exception Class
-
-Logger 라이브러리의 ApiException이 RuntimeException을 extends 받고있다.
-
 ``` 
-    // ex )
-    if (isBlank(name)) {
-                               <code>, <message>
-        throw new ApiException(801, "RANK PARAMETER GAME NUM ERROR");
+    private final Logger logger;
+    
+    public JSONObject login(JSONObject object) throws Exception {
+        JSONObject loginResult = new JSONObject();
+        loginResult = query.select(<sql:>, value);
+
+
+        LogDTO loginLog = LoginLogDTO.LoginLog.
+                builder().
+                name("login").
+                code(100201).
+                id(loginResult.getId()).
+                coin(loginResult.getCoin()).
+                build();                      // You don't have to do with builder patterns. Just create your own class and implements ILogDTO. 
+
+        logger.info(loginLog); 
+        
+        return loginResult;
     }
 ```
 
-## 5. Filter와 Interceptor, AOP @Before 메소드 에러 처리
-
-
-### 2가지 방법.  
+## 4. How to print log if exception in Filter, Interceptor and @Before Methods?
   
 
-#### 1. ApplicationLogger 클래스 추가.  
-  
-어디에서나 해당 메서드를 호출하면 에러 로그를 찍을 수 있다.
+#### 1. Use ApplicationLogger.  (Recommended)
+
 ```
  private final ApplicationLogger applicationLogger;
  
- applicationLogger.error(String message); // 호출 시 에러 로그.
+ applicationLogger.info(String message); 
+ 
+ applicationLogger.error(String message);
 ```
-  
-    
-#### 2. FilterExceptionHandler 클래스. (필터 에러만 적용.)
 
-Filter 등록 시 에러 로그 가능.
+<br>  
+
+### OR 
+
+<br>
+
+#### 2. FilterExceptionHandler (Only in Filter)
+
 ```
   private final ApplicationLogger applicationLogger;
 

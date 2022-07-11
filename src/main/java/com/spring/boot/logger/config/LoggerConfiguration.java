@@ -6,6 +6,10 @@ import com.spring.boot.logger.general.GeneralLoggerFactory;
 import com.spring.boot.logger.general.IGeneralLogger;
 import com.spring.boot.logger.general.Logger;
 import com.spring.boot.logger.general.LoggerAspect;
+import com.spring.boot.logger.listeners.ApplicationFailedListener;
+import com.spring.boot.logger.listeners.ApplicationReadyListener;
+import com.spring.boot.logger.listeners.ApplicationStartedListener;
+import com.spring.boot.logger.listeners.ApplicationStoppedListener;
 import com.spring.boot.logger.utils.InputValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -24,7 +28,7 @@ public class LoggerConfiguration {
     @Value("${logging.application.type:#{null}}")
     private String applicationLoggingType;
 
-    @Value("${service}")
+    @Value("${logging.service}")
     private String service;
 
     @Value("${logging.parameters.masking-keys:#{new String[0]}}")
@@ -65,5 +69,25 @@ public class LoggerConfiguration {
         IApplicationLogger logger = new ApplicationLoggerFactory().getLogger(applicationLoggingType, service);
 
         return new ApplicationLoggerAspect(logger);
+    }
+
+    @Bean
+    public ApplicationStartedListener applicationStartedListener() {
+        return new ApplicationStartedListener();
+    }
+
+    @Bean
+    public ApplicationReadyListener applicationReadyListener() {
+        return new ApplicationReadyListener();
+    }
+
+    @Bean
+    public ApplicationFailedListener applicationFailedListener() {
+        return new ApplicationFailedListener();
+    }
+
+    @Bean
+    public ApplicationStoppedListener applicationStoppedListener() {
+        return new ApplicationStoppedListener();
     }
 }

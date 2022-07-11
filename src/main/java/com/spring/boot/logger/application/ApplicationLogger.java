@@ -16,8 +16,9 @@ import java.util.Arrays;
 @Slf4j
 public class ApplicationLogger extends AbstractApplicationLogger {
 
-    private void info(String message) {
-        // TODO : if you need this method...
+    public void info(String message) {
+        JSONObject json = getLogJson(message);
+        log.info(json.toJSONString());
     }
 
     public void error(String message) {
@@ -63,3 +64,4 @@ public class ApplicationLogger extends AbstractApplicationLogger {
         return json;
     }
 }
+

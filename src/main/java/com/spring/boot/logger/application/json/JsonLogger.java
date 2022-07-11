@@ -48,7 +48,7 @@ public class JsonLogger extends AbstractApplicationLogger {
             }
 
             MDC.put(ILoggerBean.EXECUTION_TIME, String.valueOf(endNanoTime - startTimeNanos));
-            MDC.put(ILoggerBean.RESPONSE, parseJSON(obj).toString());
+            MDC.put(ILoggerBean.RESPONSE, parseJSONString(obj));
 
             log.info(logJson.toJSONString());
         } catch (Throwable e) {

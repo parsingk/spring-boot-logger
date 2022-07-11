@@ -111,7 +111,7 @@ public class StackdriverLogger extends AbstractApplicationLogger {
             response = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getResponse();
             long endNanoTime = System.currentTimeMillis();
 
-            MDC.put(ILoggerBean.RESPONSE, parseJSON(obj).toString());
+            MDC.put(ILoggerBean.RESPONSE, parseJSONString(obj));
 
             if (includeStatusCode && response != null) {
                 MDC.put(ILoggerBean.STATUS, String.valueOf(response.getStatus()));

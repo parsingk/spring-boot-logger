@@ -5,8 +5,8 @@ public interface IConfiguration {
     /**
      * In application.yml.
      *
-     * service: ${tag for your service}
      * logging:
+     *    service: ${tag for your service}
      *    application:
      *      on: true
      *      type: json or stackdriver
@@ -19,7 +19,8 @@ public interface IConfiguration {
      *              produce: true (default false)
      *              region: ${region}
      *              streamName: ${streamName}
-     *    parameters-masking-keys: ${key}, ${key}
+     *    parameters:
+     *      masking-keys: ${key}, ${key}
      *
      */
 
@@ -28,7 +29,7 @@ public interface IConfiguration {
     String APPLICATION_ON = "application.on-log";
     String VALUE_TRUE = "true";
 
-    String KINESIS_PRODUCER_PRODUCE = "kinesis.producer.produce";
+    String KINESIS_PRODUCER_PRODUCE = "aws.kinesis.producer.produce";
 
     String APPLICATION_LOGGING_TYPE_JSON = "json";
     String APPLICATION_LOGGING_TYPE_STACKDRIVER = "stackdriver";
@@ -37,3 +38,4 @@ public interface IConfiguration {
 
 //    String PARAMETERS_MASKING_KEYS
 }
+

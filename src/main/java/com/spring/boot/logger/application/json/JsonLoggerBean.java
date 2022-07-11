@@ -63,3 +63,4 @@ public class JsonLoggerBean extends AbstractLoggerBean implements ILoggerBean {
         return bean;
     }
 }
+

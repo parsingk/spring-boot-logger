@@ -110,10 +110,20 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
         return copyData;
     }
 
-    protected JSONObject parseJSON(Object obj) throws ParseException {
+    protected String parseJSONString(Object obj) {
         JSONParser parser = new JSONParser();
         Gson gson = new Gson();
 
-        return (JSONObject) parser.parse(gson.toJson(obj));
+        try {
+            if (obj == null) {
+                throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION);
+            }
+
+            JSONObject json = (JSONObject) parser.parse(gson.toJson(obj));
+            return json.toString();
+        } catch (ParseException e) {
+            return null;
+        }
     }
 }
+
