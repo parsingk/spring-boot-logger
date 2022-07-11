@@ -3,7 +3,9 @@
 ***
 
 JSON Type Logging Library using Spring AOP, Logback.  
-You can print your application log or what you want to, also send to Kinesis Data Streams.
+You can print your application log or what you want to, also send to Kinesis Data Streams.  
+
+- Java 11 +
 
 ## 1. Setup
 
