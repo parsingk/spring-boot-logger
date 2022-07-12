@@ -1,8 +1,7 @@
 ![Generic Badge](https://img.shields.io/badge/version-0.1.2-success.svg)
 ![Generic badge](https://img.shields.io/badge/license-Apache--2.0-orange)
 
-#  Spring-Boot-Logger 
-***
+#  Spring-Boot-Logger
 
 JSON Type Logging Library using Spring AOP, Logback.  
 You can print your application log or what you want to, also send to Kinesis Data Streams.  
