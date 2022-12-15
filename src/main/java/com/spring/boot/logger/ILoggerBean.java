@@ -7,6 +7,8 @@ public interface ILoggerBean {
     String IS_EXCEPTION_OBJECT = "IS_EXCEPTION_OBJECT";
     String IS_CUSTOM_ERROR_LOG = "IS_CUSTOM_ERROR_LOG";
 
+    String IS_SYSTEM_LOG = "IS_SYSTEM_LOG";
+
     String TIMESTAMP = "timestamp";
     String LEVEL = "level";
     String LOG_TYPE = "logtype";

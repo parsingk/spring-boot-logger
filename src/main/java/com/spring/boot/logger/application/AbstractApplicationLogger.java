@@ -1,8 +1,7 @@
 package com.spring.boot.logger.application;
 
-import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.spring.boot.logger.AbstractLogger;
 import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.utils.InputValidator;
@@ -19,9 +18,10 @@ import java.util.Iterator;
 
 public abstract class AbstractApplicationLogger extends AbstractLogger implements IApplicationLogger {
 
-    protected final ObjectMapper objectMapper = new ObjectMapper().configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, true);
+    protected final ObjectMapper objectMapper = ObjectMapperBuilder.build();
     private static String applicationLoggingType;
     private static String[] maskingKeys;
+    protected final int limitPayloadLength = 10 * 1024; // 10kb
 
     public static void setApplicationLoggingType(String applicationLoggingType) {
         if (InputValidator.isBlankWithNull(AbstractApplicationLogger.applicationLoggingType)) {
@@ -49,6 +49,12 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
         return MDC.getCopyOfContextMap();
     }
 
+    public Object errorAround(ProceedingJoinPoint joinPoint) throws Throwable {
+        MDC.put(ILoggerBean.SERVICE, AbstractLogger.getService());
+        MDC.put(ILoggerBean.LOG_TYPE, String.valueOf(ILoggerBean.APPLICATION_LOG));
+        return MDC.getCopyOfContextMap();
+    }
+
     protected JSONObject getHeaders(HttpServletRequest request) {
         JSONObject headers = new JSONObject();
 
@@ -63,7 +69,7 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
         }
 
         String ip = request.getHeader("x-forwarded-for");
-        if(ip == null) {
+        if(ip == null || ip.isEmpty()) {
             ip = request.getRemoteAddr();
         }
 
@@ -78,18 +84,10 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
         Object key;
         for (Object o : args) {
             try {
-                if (o instanceof Exception) {
-                    json.put(ILoggerBean.IS_EXCEPTION_OBJECT, true);
-                    return json;
-                }
-
                 HashMap map = objectMapper.convertValue(o, HashMap.class);
                 iterator = map.keySet().iterator();
                 while (iterator.hasNext()) {
                     key = iterator.next();
-                    if (key.toString().equalsIgnoreCase(ILoggerBean.IS_EXCEPTION_OBJECT)) {
-                        continue;
-                    }
 
                     json.put(key, map.get(key));
                 }
@@ -110,19 +108,21 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
         return copyData;
     }
 
-    protected String parseJSONString(Object obj) {
+    protected String parseJSONString(Object obj) throws ParseException {
         JSONParser parser = new JSONParser();
-        Gson gson = new Gson();
-
         try {
             if (obj == null) {
                 throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION);
             }
 
-            JSONObject json = (JSONObject) parser.parse(gson.toJson(obj));
+            JSONObject json = (JSONObject) parser.parse(objectMapper.writeValueAsString(obj));
             return json.toString();
-        } catch (ParseException e) {
-            return null;
+        } catch (ClassCastException e) {
+            if (obj == null) throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION, e);
+            JSONObject json = (JSONObject) parser.parse(obj.toString());
+            return json.toString();
+        } catch (ParseException | JsonProcessingException e) {
+            throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION, e);
         }
     }
 }

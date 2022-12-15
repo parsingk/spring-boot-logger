@@ -1,6 +1,7 @@
 package com.spring.boot.logger.aws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.utils.InputValidator;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.SdkBytes;
@@ -8,6 +9,7 @@ import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -17,6 +19,7 @@ public class AwsKinesisDataProducer {
     private final KinesisAsyncClient kinesisAsyncClient;
     private final String streamName;
 
+    private final AwsKinesisLogType validLogType;
     private static AwsKinesisDataProducer producer = null;
 
     public static synchronized void configure(AwsKinesisDataStreamConfig config) {
@@ -24,11 +27,9 @@ public class AwsKinesisDataProducer {
             producer = new AwsKinesisDataProducer(config);
         }
     }
-
     public static boolean isConfigured() {
         return producer != null;
     }
-
     public static AwsKinesisDataProducer getInstance() {
         return producer;
     }
@@ -36,9 +37,16 @@ public class AwsKinesisDataProducer {
     private AwsKinesisDataProducer(AwsKinesisDataStreamConfig config) {
         this.streamName = config.getStreamName();
         this.kinesisAsyncClient = config.getKinesisAsyncClient();
+        this.validLogType = config.getValidLogType();
     }
 
-    public void putRecord(String key, Object sendObject) {
+    public void putRecord(String key, Map<String, Object> sendObject) {
+        int logType = Integer.parseInt(sendObject.getOrDefault(ILoggerBean.LOG_TYPE, -1).toString());
+
+        if (!isValidLogType(logType)) {
+            return;
+        }
+
         byte[] bytes = this.toBytes(sendObject);
 
         if (InputValidator.isNull(bytes)) { return; }
@@ -58,6 +66,13 @@ public class AwsKinesisDataProducer {
         }
     }
 
+    private boolean isValidLogType(int logType) {
+        if (validLogType == AwsKinesisLogType.BOTH) {
+            return true;
+        }
+
+        return validLogType == AwsKinesisLogType.getTypeByType(logType);
+    }
     private byte[] toBytes(Object o) {
         try {
             return objectMapper.writeValueAsBytes(o);

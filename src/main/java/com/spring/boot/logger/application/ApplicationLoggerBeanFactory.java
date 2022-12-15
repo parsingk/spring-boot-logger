@@ -3,7 +3,6 @@ package com.spring.boot.logger.application;
 import com.spring.boot.logger.AbstractLoggerBean;
 import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.application.json.JsonLoggerBean;
-import com.spring.boot.logger.application.stackdriver.StackdriverLoggerBean;
 import com.spring.boot.logger.config.IConfiguration;
 import org.json.simple.JSONObject;
 
@@ -17,7 +16,7 @@ public class ApplicationLoggerBeanFactory {
             = new ConcurrentHashMap<>(){
         {
             put(IConfiguration.APPLICATION_LOGGING_TYPE_JSON, JsonLoggerBean.class);
-            put(IConfiguration.APPLICATION_LOGGING_TYPE_STACKDRIVER, StackdriverLoggerBean.class);
+//            put(IConfiguration.APPLICATION_LOGGING_TYPE_STACKDRIVER, StackdriverLoggerBean.class);
         }
     };
 

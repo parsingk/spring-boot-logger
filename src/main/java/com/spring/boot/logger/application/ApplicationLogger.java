@@ -26,10 +26,41 @@ public class ApplicationLogger extends AbstractApplicationLogger {
         log.error(json.toJSONString());
     }
 
+    public void info(String message, Object arg) {
+        JSONObject json = getLogJson(message);
+        log.info(json.toJSONString(), arg);
+    }
+
+    public void error(String message, Object arg) {
+        JSONObject json = getLogJson(message);
+        log.error(json.toJSONString(), arg);
+    }
+
+    public void systemInfo(String message) {
+        JSONObject json = getSystemLogJson(message);
+        log.info(json.toJSONString());
+    }
+
+    public void systemError(String message) {
+        JSONObject json = getSystemLogJson(message);
+        log.error(json.toJSONString());
+    }
+
+    private JSONObject getSystemLogJson(String message) {
+        JSONObject json = new JSONObject();
+
+        json.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
+        json.put(ILoggerBean.IS_SYSTEM_LOG, true);
+        json.put(ILoggerBean.SERVICE, AbstractLogger.getService());
+        json.put(ILoggerBean.MESSAGE, message);
+
+        return json;
+    }
+
     private JSONObject getLogJson(String message) {
         JSONObject json = new JSONObject();
 
-        json.put(ILoggerBean.LOG_TYPE, String.valueOf(ILoggerBean.APPLICATION_LOG));
+        json.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
         json.put(ILoggerBean.IS_CUSTOM_ERROR_LOG, true);
         json.put(ILoggerBean.SERVICE, AbstractLogger.getService());
         json.put(ILoggerBean.MESSAGE, message);

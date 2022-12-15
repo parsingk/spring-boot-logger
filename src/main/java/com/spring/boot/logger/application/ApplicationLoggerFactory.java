@@ -1,7 +1,6 @@
 package com.spring.boot.logger.application;
 
 import com.spring.boot.logger.application.json.JsonLogger;
-import com.spring.boot.logger.application.stackdriver.StackdriverLogger;
 import com.spring.boot.logger.config.IConfiguration;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,12 +14,12 @@ public class ApplicationLoggerFactory implements IApplicationLoggerFactory {
 
     public ApplicationLoggerFactory() {
         loggerMap.put(IConfiguration.APPLICATION_LOGGING_TYPE_JSON, JsonLogger.class);
-        loggerMap.put(IConfiguration.APPLICATION_LOGGING_TYPE_STACKDRIVER, StackdriverLogger.class);
+//        loggerMap.put(IConfiguration.APPLICATION_LOGGING_TYPE_STACKDRIVER, StackdriverLogger.class);
     }
 
     @Override
-    public IApplicationLogger getLogger(String type, String service) throws Exception {
-        Class<? extends IApplicationLogger> logger = loggerMap.get(type);
+    public IApplicationLogger getLogger() throws Exception {
+        Class<? extends IApplicationLogger> logger = loggerMap.get(AbstractApplicationLogger.getApplicationLoggingType());
         if (logger == null) {
             throw new Exception("Can not find logger by logging.type in your application.yml or properties file.");
         }

@@ -12,6 +12,8 @@ import static com.spring.boot.logger.config.IConfiguration.*;
 @Configuration
 public class KinesisConfiguration {
 
+    @Value("${logging.aws.kinesis.logType:null}")
+    private String validLogType;
     @Value("${logging.aws.kinesis.producer.region:null}")
     private String regionName;
     @Value("${logging.aws.kinesis.producer.streamName:null}")
@@ -24,8 +26,9 @@ public class KinesisConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = PREFIX, name = KINESIS_PRODUCER_PRODUCE, havingValue = VALUE_TRUE)
     public void kinesisDataStreamProducer() throws Exception {
-        AwsKinesisDataProducer.configure(
-                AwsKinesisDataStreamConfig.getInstance(regionName, streamName, awsAccessKey, awsSecret)
-        );
+        AwsKinesisDataStreamConfig config = AwsKinesisDataStreamConfig.getInstance(regionName, streamName, awsAccessKey, awsSecret);
+        config.setValidLogType(validLogType);
+
+        AwsKinesisDataProducer.configure(config);
     }
 }

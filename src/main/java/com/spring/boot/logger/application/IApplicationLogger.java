@@ -6,4 +6,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 public interface IApplicationLogger extends ILogger {
 
     Object doAround(ProceedingJoinPoint joinPoint) throws Throwable;
+
+    Object errorAround(ProceedingJoinPoint joinPoint) throws Throwable;
 }

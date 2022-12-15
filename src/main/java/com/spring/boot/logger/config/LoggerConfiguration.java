@@ -25,10 +25,7 @@ import static com.spring.boot.logger.config.IConfiguration.*;
 @Configuration
 public class LoggerConfiguration {
 
-    @Value("${logging.application.type:#{null}}")
-    private String applicationLoggingType;
-
-    @Value("${logging.service}")
+    @Value("${service}")
     private String service;
 
     @Value("${logging.parameters.masking-keys:#{new String[0]}}")
@@ -36,13 +33,12 @@ public class LoggerConfiguration {
 
     @PostConstruct
     public void initService() throws Exception {
-        // @Value annotation check this first. so doesn't need check for null here.
         if (InputValidator.isBlankWithNull(service)) {
             throw new Exception("service must not to be null in your application.yml or properties file.");
         }
 
         AbstractLogger.setService(service);
-        AbstractApplicationLogger.setApplicationLoggingType(applicationLoggingType);
+        AbstractApplicationLogger.setApplicationLoggingType(APPLICATION_LOGGING_TYPE_JSON);
         AbstractApplicationLogger.setMaskingKeys(maskingKeys);
     }
 
@@ -66,28 +62,28 @@ public class LoggerConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = PREFIX, name = APPLICATION_ON, havingValue = VALUE_TRUE)
     public ApplicationLoggerAspect applicationLoggerAspect() throws Exception {
-        IApplicationLogger logger = new ApplicationLoggerFactory().getLogger(applicationLoggingType, service);
+        IApplicationLogger logger = new ApplicationLoggerFactory().getLogger();
 
         return new ApplicationLoggerAspect(logger);
     }
 
     @Bean
     public ApplicationStartedListener applicationStartedListener() {
-        return new ApplicationStartedListener();
+        return new ApplicationStartedListener(applicationLogger());
     }
 
     @Bean
     public ApplicationReadyListener applicationReadyListener() {
-        return new ApplicationReadyListener();
+        return new ApplicationReadyListener(applicationLogger());
     }
 
     @Bean
     public ApplicationFailedListener applicationFailedListener() {
-        return new ApplicationFailedListener();
+        return new ApplicationFailedListener(applicationLogger());
     }
 
     @Bean
     public ApplicationStoppedListener applicationStoppedListener() {
-        return new ApplicationStoppedListener();
+        return new ApplicationStoppedListener(applicationLogger());
     }
 }

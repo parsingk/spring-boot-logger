@@ -17,6 +17,7 @@ public class AwsKinesisDataStreamConfig {
     private KinesisAsyncClient kinesisAsyncClient;
     private static AwsKinesisDataStreamConfig config = null;
 
+    private AwsKinesisLogType validLogType = AwsKinesisLogType.BOTH;
     private void credentials(Region region, String accessKey, String secret) {
         AwsCredentialsProvider provider = () -> AwsBasicCredentials.create(accessKey, secret);
 
@@ -26,7 +27,6 @@ public class AwsKinesisDataStreamConfig {
                         .region(region)
         );
     }
-
     public static synchronized AwsKinesisDataStreamConfig getInstance(String region, String streamName, String accessKey, String secret) throws Exception {
         if (config == null) {
             config = new AwsKinesisDataStreamConfig(region, streamName, accessKey, secret);
@@ -34,19 +34,28 @@ public class AwsKinesisDataStreamConfig {
 
         return config;
     }
-
     private AwsKinesisDataStreamConfig(String region, String streamName, String accessKey, String secret) throws Exception {
         this.initialize(region, streamName, accessKey, secret);
     }
 
+    public void setValidLogType(String validLogType) {
+        AwsKinesisLogType type = AwsKinesisLogType.BOTH;
+        if (validLogType != null && validLogType.trim().length() != 0) {
+            type = AwsKinesisLogType.getTypeByLabel(validLogType);
+        }
+
+        this.validLogType = type;
+    }
     public String getStreamName() {
         return streamName;
     }
-
     public KinesisAsyncClient getKinesisAsyncClient() {
         return kinesisAsyncClient;
     }
 
+    public AwsKinesisLogType getValidLogType() {
+        return validLogType;
+    }
     private void initialize(String regionName, String streamName, String accessKey, String secret) throws Exception {
         Region region = Region.of(regionName);
 
@@ -64,7 +73,6 @@ public class AwsKinesisDataStreamConfig {
 
         log.info("[AWS Kinesis] Producer configured.");
     }
-
     private void validateStream(String streamName) throws Exception {
         DescribeStreamRequest describeStreamRequest = DescribeStreamRequest.builder().streamName(streamName).build();
         DescribeStreamResponse describeStreamResponse = this.kinesisAsyncClient.describeStream(describeStreamRequest).get();
