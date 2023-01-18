@@ -1,4 +1,4 @@
-![Generic Badge](https://img.shields.io/badge/version-0.2.0-success.svg)
+![Generic Badge](https://img.shields.io/badge/version-0.3.0-success.svg)
 ![Generic badge](https://img.shields.io/badge/license-Apache--2.0-orange)
 
 #  Spring-Boot-Logger

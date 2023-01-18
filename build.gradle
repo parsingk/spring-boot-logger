@@ -8,7 +8,7 @@ plugins {
 
 group = 'io.github.parsingk'
 archivesBaseName = "spring-boot-logger"
-version = '0.2.0'
+version = '0.3.0'
 sourceCompatibility = '11'
 
 configurations {
@@ -45,7 +45,7 @@ publishing {
 
             groupId = 'io.github.parsingk'
             artifactId = 'spring-boot-logger'
-            version = '0.2.0'
+            version = '0.3.0'
             from components.java
 
             artifact javadocJar
