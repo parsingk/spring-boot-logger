@@ -4,8 +4,6 @@ import com.spring.boot.logger.AbstractLogger;
 import com.spring.boot.logger.application.*;
 import com.spring.boot.logger.general.GeneralLoggerFactory;
 import com.spring.boot.logger.general.IGeneralLogger;
-import com.spring.boot.logger.general.Logger;
-import com.spring.boot.logger.general.LoggerAspect;
 import com.spring.boot.logger.listeners.ApplicationFailedListener;
 import com.spring.boot.logger.listeners.ApplicationReadyListener;
 import com.spring.boot.logger.listeners.ApplicationStartedListener;
@@ -43,15 +41,8 @@ public class LoggerConfiguration {
     }
 
     @Bean
-    public Logger generalLogger() {
-        return new Logger();
-    }
-
-    @Bean
-    public LoggerAspect generalLoggerAspect() throws Exception {
-        IGeneralLogger logger = new GeneralLoggerFactory().getLogger(IConfiguration.GENERAL_LOGGING_TYPE_DEFAULT);
-
-        return new LoggerAspect(logger);
+    public IGeneralLogger generalLogger() throws Exception {
+        return new GeneralLoggerFactory().getLogger(IConfiguration.GENERAL_LOGGING_TYPE_DEFAULT);
     }
 
     @Bean

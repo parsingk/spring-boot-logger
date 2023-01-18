@@ -20,6 +20,6 @@ public class ApplicationReadyListener implements ApplicationListener<Application
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        log.info("server ready. active : " + Arrays.toString(event.getApplicationContext().getEnvironment().getActiveProfiles()));
+        log.info(logger.getSystemLogJson("server ready. active : " + Arrays.toString(event.getApplicationContext().getEnvironment().getActiveProfiles())).toJSONString());
     }
 }

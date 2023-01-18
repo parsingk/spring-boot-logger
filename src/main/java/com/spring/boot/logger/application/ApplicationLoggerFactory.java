@@ -19,10 +19,11 @@ public class ApplicationLoggerFactory implements IApplicationLoggerFactory {
 
     @Override
     public IApplicationLogger getLogger() throws Exception {
-        Class<? extends IApplicationLogger> logger = loggerMap.get(AbstractApplicationLogger.getApplicationLoggingType());
-        if (logger == null) {
+        if (!loggerMap.containsKey(AbstractApplicationLogger.getApplicationLoggingType())) {
             throw new Exception("Can not find logger by logging.type in your application.yml or properties file.");
         }
+
+        Class<? extends IApplicationLogger> logger = loggerMap.get(AbstractApplicationLogger.getApplicationLoggingType());
 
         return logger.getDeclaredConstructor().newInstance();
     }

@@ -16,6 +16,6 @@ public class ApplicationStoppedListener implements ApplicationListener<ContextCl
 
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
-        log.info("server stopped");
+        log.info(logger.getSystemLogJson("server stopped").toJSONString());
     }
 }

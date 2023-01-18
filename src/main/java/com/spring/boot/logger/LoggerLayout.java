@@ -68,10 +68,6 @@ public class LoggerLayout extends JsonLayout {
             map.putAll(beanMap);
             map.remove(ILoggerBean.MDC);
         }
-
-        if (AwsKinesisDataProducer.isConfigured()) {
-            AwsKinesisDataProducer.getInstance().putRecord(AbstractLogger.getService(), map);
-        }
     }
 
     private JSONObject parseEventToJson(ILoggingEvent event) throws ParseException {

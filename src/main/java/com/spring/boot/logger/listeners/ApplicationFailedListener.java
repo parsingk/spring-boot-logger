@@ -16,6 +16,6 @@ public class ApplicationFailedListener implements ApplicationListener<Applicatio
 
     @Override
     public void onApplicationEvent(ApplicationFailedEvent event) {
-        log.error("server start failed. error : " + event.getException().getMessage());
+        logger.systemError("server start failed. error : " + event.getException().getMessage());
     }
 }

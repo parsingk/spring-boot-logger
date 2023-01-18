@@ -46,7 +46,7 @@ public class ApplicationLogger extends AbstractApplicationLogger {
         log.error(json.toJSONString());
     }
 
-    private JSONObject getSystemLogJson(String message) {
+    public JSONObject getSystemLogJson(String message) {
         JSONObject json = new JSONObject();
 
         json.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);

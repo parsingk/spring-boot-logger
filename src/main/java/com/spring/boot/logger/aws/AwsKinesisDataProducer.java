@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class AwsKinesisDataProducer {
         this.validLogType = config.getValidLogType();
     }
 
-    public void putRecord(String key, Map<String, Object> sendObject) {
+    public void putRecord(Map<String, Object> sendObject) {
         int logType = Integer.parseInt(sendObject.getOrDefault(ILoggerBean.LOG_TYPE, -1).toString());
 
         if (!isValidLogType(logType)) {
@@ -52,7 +53,7 @@ public class AwsKinesisDataProducer {
         if (InputValidator.isNull(bytes)) { return; }
 
         PutRecordRequest request = PutRecordRequest.builder()
-                .partitionKey(key)
+                .partitionKey(this.getRandomPartitionKey())
                 .streamName(streamName)
                 .data(SdkBytes.fromByteArray(bytes))
                 .build();
@@ -79,5 +80,9 @@ public class AwsKinesisDataProducer {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    private String getRandomPartitionKey() {
+        return UUID.randomUUID().toString().toLowerCase();
     }
 }

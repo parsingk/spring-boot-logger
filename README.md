@@ -80,10 +80,11 @@ If you do not want print log, use @NoApplicationLog on your method.
 ## 3. General Log
 
 It is for your custom log.
-You can print whatever, wherever.  
-Just create your Class and implements `ILogDTO`.
+You can print whatever, wherever.
 
-**Examples :**
+**Examples :**  
+You don't have to do with builder patterns. Just create your own class and implements `ILogDTO`.  
+Declare `IGeneralLogger` and use `log()` method. It is only support log level `INFO`.
 ```
  
 @Getter
@@ -95,39 +96,43 @@ public class LogDTO implements ILogDTO {
 
 ```
 ```
-    public class LoginLogDTO {
+    public class AuthLogDTO {
     
         @Getter
         @SuperBuilder
-        public static class HomeLog extends LogDTO {
+        public static class LoginLog extends LogDTO {
             private Long id;
             private Integer coin;
         }
     }
 ```
 ``` 
-    private final Logger logger;
+    private final IGeneralLogger logger;
     
     public JSONObject login(JSONObject object) throws Exception {
         JSONObject loginResult = new JSONObject();
         loginResult = query.select(<sql:>, value);
 
 
-        LogDTO loginLog = LoginLogDTO.LoginLog.
+        LogDTO loginLog = AuthLogDTO.LoginLog.
                 builder().
                 name("login").
                 code(100201).
                 id(loginResult.getId()).
                 coin(loginResult.getCoin()).
-                build();                      // You don't have to do with builder patterns. Just create your own class and implements ILogDTO. 
+                build();                      
 
-        logger.info(loginLog); 
+        logger.log(loginLog); 
         
         return loginResult;
     }
 ```
+## 4. Exceptions
+Recommend to use `ApiException` class or Extend.
 
-## 4. How to print log if exception in Filter, Interceptor and @Before Methods?
+<br>  
+
+## 5. How to print log if exception in Filter, Interceptor and @Before Methods?
   
 
 #### 1. Use ApplicationLogger.  (Recommended)

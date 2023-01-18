@@ -17,6 +17,6 @@ public class ApplicationStartedListener implements ApplicationListener<Applicati
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
-        log.info("server started");
+        log.info(logger.getSystemLogJson("server started").toJSONString());
     }
 }
