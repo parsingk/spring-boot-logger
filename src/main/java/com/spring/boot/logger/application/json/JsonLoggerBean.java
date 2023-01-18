@@ -4,11 +4,13 @@ import com.spring.boot.logger.AbstractLoggerBean;
 import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.utils.InputValidator;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class JsonLoggerBean extends AbstractLoggerBean implements ILoggerBean {
 
     private String url;
