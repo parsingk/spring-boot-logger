@@ -20,7 +20,6 @@ public class AwsKinesisDataStreamConfig {
     private AwsKinesisLogType validLogType = AwsKinesisLogType.BOTH;
     private void credentials(Region region, String accessKey, String secret) {
         AwsCredentialsProvider provider = () -> AwsBasicCredentials.create(accessKey, secret);
-
         this.kinesisAsyncClient = KinesisClientUtil.createKinesisAsyncClient(
                 KinesisAsyncClient.builder()
                         .credentialsProvider(provider)
@@ -46,6 +45,15 @@ public class AwsKinesisDataStreamConfig {
 
         this.validLogType = type;
     }
+
+    public void setValidLogType(AwsKinesisLogType validLogType) {
+        if (validLogType == null) {
+            validLogType = AwsKinesisLogType.BOTH;
+        }
+
+        this.validLogType = validLogType;
+    }
+
     public String getStreamName() {
         return streamName;
     }

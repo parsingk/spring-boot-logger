@@ -1,4 +1,4 @@
-![Generic Badge](https://img.shields.io/badge/version-0.3.0-success.svg)
+![Generic Badge](https://img.shields.io/badge/version-1.0.0-success.svg)
 ![Generic badge](https://img.shields.io/badge/license-Apache--2.0-orange)
 
 #  Spring-Boot-Logger
@@ -7,13 +7,13 @@ JSON Type Logging Library using Spring AOP, Logback.
 You can print your application log or what you want to, also send to Kinesis Data Streams.  
 
 - Java 11 +
+- Java 17
 
 ## 1. Setup
 
-Add @EnableAspectJAutoProxy, @EnableLogger in your main class
+Add @EnableAspectJAutoProxy in your main class
 ```
 @EnableAspectJAutoProxy
-@EnableLogger
 @SpringBootApplication
 public class Application {
 
@@ -24,27 +24,45 @@ public class Application {
 }
 ```
 
-### application.yaml settings.
+
+### Log Configuration Settings.
 
 ```
-  service: ${tag for your service}
-  logging:
-     application:
-       on-log: true or false        // if you want to log for application ex) true
-     aws:
-       credentials:
-           accessKey: ${AWS_ACCESS_KEY}
-           secretKey: ${AWS_SECRET_KEY}
-       kinesis:                                     // aws kinesis data stream info
-           logType: general or application          // if you want to send general log or application log to kinesis data streams. if null, send both log.
-           producer:
-               produce: true (default false)        // if false, it does not send to kinesis
-               region: ${region}
-               streamName: ${streamName}
-    parameters-masking-keys: ${key}, ${key}         // if you need to hide the value from request. ex) password
+@Configuration
+public class LogConfig {
+
+    @Bean
+    public LoggerConfig config() throws Exception {
+        LoggerConfig config = new LoggerConfig(${service});
+        config.setGeneralLoggerIncludeHeaders(${includeHeaders});
+        config.setApplicationLoggerBean(${Bean Class});
+        config.setApplicationLogger(${Logger});
+        config.setMaskingKeys(${List Object});
+        config.setAwsKinesisConfig(new KinesisConfigBuilder()
+                .region(${region})
+                .streamName(${stream-name})
+                .logType(AwsKinesisLogType.BOTH)
+                .build());
+
+        config.onKinesisStream(${access-key}, ${secret});
+
+
+        return config;
+    }
+}
 
 ```
+  
+<br>
 
+- Service : This is your service name.
+- IncludeHeaders : Set `true`, If you want to print with request headers in general log. (default `true`)
+- ApplicationLogger : You can create custom logger. implement business logic. 
+- ApplicationLoggerBean : It is custom logger bean what you want to print for log.
+- MaskingKeys : For hiding request information. it will replace to `******`.
+- AwsKinesisConfig, onKinesisStream : You can send log to AWS Kinesis Streams. 
+
+<br>
   
 ### logback-spring.xml console appender settings.
 ```

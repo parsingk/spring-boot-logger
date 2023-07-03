@@ -1,31 +1,39 @@
 package com.spring.boot.logger;
 
-import com.spring.boot.logger.application.ApplicationLoggerBeanFactory;
+import com.spring.boot.logger.application.json.SystemJsonLoggerBean;
+import com.spring.boot.logger.config.ApplicationFactoryAdapter;
 import com.spring.boot.logger.general.LoggerBean;
-import org.json.simple.JSONObject;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+
+import static com.spring.boot.logger.ILoggerBean.APPLICATION_LOG;
+import static com.spring.boot.logger.ILoggerBean.GENERAL_LOG;
 
 public class LoggerBeanAdapter {
 
     public static boolean isApplicationLog(Integer val) {
-        return ILoggerBean.APPLICATION_LOG == val;
+        return APPLICATION_LOG == val;
     }
 
-    public static boolean isApplicationLog(String val) {
-        if (val == null) {
-            return false;
-        }
-
-        return ILoggerBean.APPLICATION_LOG == Integer.parseInt(val);
+    public static boolean isGeneralLog(Integer val) {
+        return GENERAL_LOG == val;
     }
 
-    public static ILoggerBean getBean(JSONObject json) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        Integer logType = Integer.parseInt(json.get(ILoggerBean.LOG_TYPE).toString());
-        if(isApplicationLog(logType)) {
-            return ApplicationLoggerBeanFactory.getBean(json);
+    public static boolean isSystemLog(Map json) {
+        if (json == null) return false;
+        return Boolean.parseBoolean(json.getOrDefault(ILoggerBean.IS_SYSTEM_LOG, false).toString());
+    }
+
+    public static ILoggerBean getBean(Map m) throws Exception {
+        if (isSystemLog(m)) {
+            return new SystemJsonLoggerBean().create(m);
         }
 
-        return LoggerBean.create(json);
+        Integer logType = Integer.parseInt(m.getOrDefault(ILoggerBean.LOG_TYPE, APPLICATION_LOG).toString());
+        if (isGeneralLog(logType)) {
+            return new LoggerBean().create(m);
+        }
+
+        return ApplicationFactoryAdapter.getLoggerBean(m);
     }
 }

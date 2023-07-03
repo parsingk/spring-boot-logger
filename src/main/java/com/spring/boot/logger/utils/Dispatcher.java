@@ -65,7 +65,19 @@ public class Dispatcher {
         JSONObject bodyJson = new JSONObject();
 
         if (!body.isBlank()) {
-            bodyJson = (JSONObject) parser.parse(body);
+            try {
+                bodyJson = (JSONObject) parser.parse(body);
+            } catch (ParseException e) {
+                String[] bodyParams = body.split("&");
+                String[] splitted;
+                for (String element : bodyParams) {
+                    splitted = element.split("=");
+                    if (splitted.length > 1) {
+                        bodyJson.put(splitted[0], splitted[1]);
+                    }
+                }
+            }
+
         }
 
         return merge(params, bodyJson);

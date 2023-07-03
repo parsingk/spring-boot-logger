@@ -7,20 +7,28 @@ import java.util.concurrent.ConcurrentMap;
 
 public class GeneralLoggerFactory implements IGeneralLoggerFactory {
 
-    final ConcurrentMap<String, Class<? extends IGeneralLogger>> loggerMap
-            = new ConcurrentHashMap<>();
+//    final ConcurrentMap<String, Class<? extends IGeneralLogger>> loggerMap
+//            = new ConcurrentHashMap<>();
+
+    private final IGeneralLogger logger;
 
     public GeneralLoggerFactory() {
-        loggerMap.put(IConfiguration.GENERAL_LOGGING_TYPE_DEFAULT, GeneralLogger.class);
+//        loggerMap.put(IConfiguration.GENERAL_LOGGING_TYPE_DEFAULT, GeneralLogger.class);
+//        Class<? extends IGeneralLogger> logger = loggerMap.get(type);
+//        if (logger == null) {
+//            logger = loggerMap.get(IConfiguration.GENERAL_LOGGING_TYPE_DEFAULT);
+//        }
+
+        logger = new GeneralLogger();
     }
 
     @Override
-    public IGeneralLogger getLogger(String type) throws Exception {
-        Class<? extends IGeneralLogger> logger = loggerMap.get(type);
-        if (logger == null) {
-            logger = loggerMap.get(IConfiguration.GENERAL_LOGGING_TYPE_DEFAULT);
-        }
+    public void setIncludeHeaders(boolean includeHeaders) {
+        logger.setIncludeHeaders(includeHeaders);
+    }
 
-        return logger.getDeclaredConstructor().newInstance();
+    @Override
+    public IGeneralLogger getLogger() {
+        return logger;
     }
 }

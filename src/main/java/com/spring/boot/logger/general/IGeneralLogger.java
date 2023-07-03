@@ -5,5 +5,6 @@ import com.spring.boot.logger.ILogger;
 
 public interface IGeneralLogger extends ILogger {
 
+    void setIncludeHeaders(boolean includeHeaders);
     void log(ILogDTO payloadObj);
 }

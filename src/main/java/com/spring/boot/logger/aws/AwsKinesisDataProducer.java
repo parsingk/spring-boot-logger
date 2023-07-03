@@ -2,6 +2,7 @@ package com.spring.boot.logger.aws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.boot.logger.ILoggerBean;
+import com.spring.boot.logger.application.ApplicationLogger;
 import com.spring.boot.logger.utils.InputValidator;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.SdkBytes;
@@ -22,6 +23,7 @@ public class AwsKinesisDataProducer {
 
     private final AwsKinesisLogType validLogType;
     private static AwsKinesisDataProducer producer = null;
+    private final ApplicationLogger logger = new ApplicationLogger();
 
     public static synchronized void configure(AwsKinesisDataStreamConfig config) {
         if (producer == null) {
@@ -58,14 +60,47 @@ public class AwsKinesisDataProducer {
                 .data(SdkBytes.fromByteArray(bytes))
                 .build();
 
-        try {
-            kinesisAsyncClient.putRecord(request).get();
-        } catch (InterruptedException e) {
-            log.info("[Kinesis Producer] Interrupted, assuming shutdown.");
-        } catch (ExecutionException e) {
-            log.error("[Kinesis Producer] Exception while sending data to Kinesis. Will try again next cycle.", e);
-        }
+        kinesisAsyncClient.putRecord(request).handleAsync((putRecordResponse, throwable) -> {
+            if (throwable != null) {
+                logger.error(throwable.getMessage(), throwable);
+            }
+
+            return putRecordResponse;
+        }).join();
     }
+
+//    public void putRecordAsync(JSONObject sendObject) {
+//        int logType = Integer.parseInt(sendObject.getOrDefault(ILoggerBean.LOG_TYPE, -1).toString());
+//
+//        if (!isValidLogType(logType)) {
+//            return;
+//        }
+//
+//        byte[] bytes = this.toBytes(sendObject);
+//
+//        if (InputValidator.isNull(bytes)) { return; }
+//
+//        PutRecordRequest request = PutRecordRequest.builder()
+//                .partitionKey(this.getRandomPartitionKey())
+//                .streamName(streamName)
+//                .data(SdkBytes.fromByteArray(bytes))
+//                .build();
+//
+//        kinesisAsyncClient.putRecord(request).whenCompleteAsync((putRecordResponse, throwable) -> {
+//            if (throwable != null) {
+//                log.error("[Kinesis Producer] Exception while sending data to Kinesis.", throwable);
+//            }
+//            log.warn("sent message: " + putRecordResponse.sequenceNumber());
+//        }).join();
+//    }
+
+//    private void retryPutRecord(PutRecordRequest request) {
+//        kinesisAsyncClient.putRecord(request).whenCompleteAsync((putRecordResponse, throwable) -> {
+//            if (throwable != null) {
+//                this.retryPutRecord(request);
+//            }
+//        });
+//    }
 
     private boolean isValidLogType(int logType) {
         if (validLogType == AwsKinesisLogType.BOTH) {

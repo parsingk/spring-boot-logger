@@ -20,7 +20,6 @@ public class GeneralLogger extends AbstractGeneralLogger {
         JSONObject json = new JSONObject();
 
         json.put(ILoggerBean.LOG_TYPE, String.valueOf(ILoggerBean.GENERAL_LOG));
-        json.put(ILoggerBean.IS_CUSTOM_ERROR_LOG, true);
         try {
             String payload = new Gson().toJson(payloadObj);
             JSONParser parser = new JSONParser();
@@ -28,6 +27,10 @@ public class GeneralLogger extends AbstractGeneralLogger {
 
             json.put(ILoggerBean.SERVICE, AbstractLogger.getService());
             json.put(ILoggerBean.JSONPAYLOAD, jsonpayload);
+
+            if (includeHeaders) {
+                json.put(ILoggerBean.HEADERS, getHeaders(getRequest()).toString());
+            }
 
             log.info(json.toJSONString());
         } catch (ParseException p) {
@@ -41,12 +44,6 @@ public class GeneralLogger extends AbstractGeneralLogger {
             json.put(ILoggerBean.STACKTRACE, Arrays.toString(e.getStackTrace()));
 
             log.error(json.toJSONString());
-        } finally {
-            if (AwsKinesisDataProducer.isConfigured()) {
-                json.remove(ILoggerBean.IS_CUSTOM_ERROR_LOG);
-                json.put(ILoggerBean.TIMESTAMP, this.formatTimestamp());
-                AwsKinesisDataProducer.getInstance().putRecord(json);
-            }
         }
     }
 }

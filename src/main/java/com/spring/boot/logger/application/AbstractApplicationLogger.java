@@ -5,42 +5,39 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.boot.logger.AbstractLogger;
 import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.utils.InputValidator;
+import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.MDC;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 public abstract class AbstractApplicationLogger extends AbstractLogger implements IApplicationLogger {
 
     protected final ObjectMapper objectMapper = ObjectMapperBuilder.build();
-    private static String applicationLoggingType;
-    private static String[] maskingKeys;
-    protected final int limitPayloadLength = 10 * 1024; // 10kb
+    private static List<String> maskingKeys;
 
-    public static void setApplicationLoggingType(String applicationLoggingType) {
-        if (InputValidator.isBlankWithNull(AbstractApplicationLogger.applicationLoggingType)) {
-            AbstractApplicationLogger.applicationLoggingType = applicationLoggingType;
-        }
-    }
+    private static int UNEXPECTED_ERROR_CODE = 500;
 
-    public static String getApplicationLoggingType() {
-        return applicationLoggingType;
-    }
 
-    public static void setMaskingKeys(String[] maskingKeys) {
+    public static void setMaskingKeys(List<String> maskingKeys) {
         if (InputValidator.isNull(AbstractApplicationLogger.maskingKeys)) {
             AbstractApplicationLogger.maskingKeys = maskingKeys;
         }
     }
 
-    public static String[] getMaskingKeys() {
+    public static List<String> getMaskingKeys() {
         return maskingKeys;
+    }
+
+    public static void setUnexpectedErrorCode(int errorCode) {
+        AbstractApplicationLogger.UNEXPECTED_ERROR_CODE = errorCode;
+    }
+
+    public static int getUnexpectedErrorCode() {
+        return AbstractApplicationLogger.UNEXPECTED_ERROR_CODE;
     }
 
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -55,31 +52,8 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
         return MDC.getCopyOfContextMap();
     }
 
-    protected JSONObject getHeaders(HttpServletRequest request) {
-        JSONObject headers = new JSONObject();
-
-        Enumeration<String> headerList = request.getHeaderNames();
-
-        if(headerList != null) {
-            String headerValue;
-            while (headerList.hasMoreElements()) {
-                headerValue = headerList.nextElement();
-                headers.put(headerValue, request.getHeader(headerValue));
-            }
-        }
-
-        String ip = request.getHeader("x-forwarded-for");
-        if(ip == null || ip.isEmpty()) {
-            ip = request.getRemoteAddr();
-        }
-
-        headers.put("ip", ip);
-
-        return headers;
-    }
-
-    protected JSONObject parseRequestArgs(Object[] args) {
-        JSONObject json = new JSONObject();
+    protected Map parseRequestArgs(Object[] args) {
+        JSONObject m = new JSONObject();
         Iterator iterator;
         Object key;
         for (Object o : args) {
@@ -89,16 +63,18 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
                 while (iterator.hasNext()) {
                     key = iterator.next();
 
-                    json.put(key, map.get(key));
+                    m.put(key, map.get(key));
                 }
             } catch (Exception ignored) {
             }
         }
 
-        return json;
+        return m;
     }
 
-    protected JSONObject maskingData(JSONObject data) {
+    protected Map maskingData(Map data) {
+        if (maskingKeys == null) return data;
+
         JSONObject copyData = new JSONObject(data);
         for (String maskingKey : maskingKeys) {
             if (copyData.containsKey(maskingKey)) {
@@ -119,7 +95,12 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
             return json.toString();
         } catch (ClassCastException e) {
             if (obj == null) throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION, e);
-            JSONObject json = (JSONObject) parser.parse(obj.toString());
+            JSONObject json;
+            if (byte[].class.equals(obj.getClass())) {
+                json = (JSONObject) parser.parse(new String((byte[]) obj));
+            } else {
+                json = (JSONObject) parser.parse(obj.toString());
+            }
             return json.toString();
         } catch (ParseException | JsonProcessingException e) {
             throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION, e);

@@ -5,25 +5,33 @@ import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.application.json.JsonLoggerBean;
 import com.spring.boot.logger.config.IConfiguration;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class ApplicationLoggerBeanFactory {
+public class ApplicationLoggerBeanFactory implements IApplicationLoggerBeanFactory {
 
-    static final ConcurrentMap<String, Class<? extends AbstractLoggerBean>> loggerBeanMap
-            = new ConcurrentHashMap<>(){
-        {
-            put(IConfiguration.APPLICATION_LOGGING_TYPE_JSON, JsonLoggerBean.class);
-//            put(IConfiguration.APPLICATION_LOGGING_TYPE_STACKDRIVER, StackdriverLoggerBean.class);
+    Class<? extends AbstractLoggerBean> bean;
+
+    boolean isDefault = true;
+
+    @Override
+    public void setBean(Class<? extends AbstractLoggerBean> bean) {
+        this.bean = bean;
+        this.isDefault = false;
+    }
+
+    public ILoggerBean getBean(Map m) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException, ParseException {
+        if (bean == null) {
+            bean = JsonLoggerBean.class;
         }
-    };
 
+        AbstractLoggerBean loggerBean = (AbstractLoggerBean) bean.getDeclaredConstructor().newInstance().create(m);
+        loggerBean.setService(AbstractApplicationLogger.getService().toLowerCase());
 
-    public static ILoggerBean getBean(JSONObject json) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Class<? extends AbstractLoggerBean> bean = loggerBeanMap.get(AbstractApplicationLogger.getApplicationLoggingType());
-
-        return (ILoggerBean) bean.getDeclaredMethod("create", JSONObject.class).invoke(null, json);
+        return loggerBean;
     }
 }

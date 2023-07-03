@@ -8,23 +8,20 @@ import java.util.concurrent.ConcurrentMap;
 
 public class ApplicationLoggerFactory implements IApplicationLoggerFactory {
 
-    final ConcurrentMap<String, Class<? extends IApplicationLogger>> loggerMap
-            = new ConcurrentHashMap<>();
+    AbstractApplicationLogger logger = null;
 
-
-    public ApplicationLoggerFactory() {
-        loggerMap.put(IConfiguration.APPLICATION_LOGGING_TYPE_JSON, JsonLogger.class);
-//        loggerMap.put(IConfiguration.APPLICATION_LOGGING_TYPE_STACKDRIVER, StackdriverLogger.class);
+    public void setLogger(AbstractApplicationLogger logger) {
+        if (this.logger == null) {
+            this.logger = logger;
+        }
     }
 
     @Override
-    public IApplicationLogger getLogger() throws Exception {
-        if (!loggerMap.containsKey(AbstractApplicationLogger.getApplicationLoggingType())) {
-            throw new Exception("Can not find logger by logging.type in your application.yml or properties file.");
+    public IApplicationLogger getLogger() {
+        if (logger == null) {
+            return new JsonLogger();
         }
 
-        Class<? extends IApplicationLogger> logger = loggerMap.get(AbstractApplicationLogger.getApplicationLoggingType());
-
-        return logger.getDeclaredConstructor().newInstance();
+        return logger;
     }
 }

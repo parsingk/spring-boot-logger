@@ -1,11 +1,30 @@
 package com.spring.boot.logger;
 
-import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
-public class AbstractLoggerBean implements ILoggerBean {
+import java.util.Map;
 
-    public static ILoggerBean create(JSONObject json) throws ParseException {
-        return null;
+public abstract class AbstractLoggerBean implements ILoggerBean {
+
+    private String service;
+
+    private Integer logtype = ILoggerBean.APPLICATION_LOG;
+
+    public void setService(String service) {
+        this.service = service;
     }
+
+    public void setLogtype(Integer logtype) {
+        this.logtype = logtype;
+    }
+
+    public String getService() {
+        return service;
+    }
+
+    public Integer getLogtype() {
+        return logtype;
+    }
+
+    public abstract ILoggerBean create(Map json) throws ParseException;
 }

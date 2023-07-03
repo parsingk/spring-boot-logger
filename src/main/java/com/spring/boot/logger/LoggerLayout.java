@@ -9,11 +9,12 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class LoggerLayout extends JsonLayout {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected Map toJsonMap(ILoggingEvent event) {
@@ -38,56 +39,69 @@ public class LoggerLayout extends JsonLayout {
     protected void addCustomDataToJsonMap(Map<String, Object> map, ILoggingEvent event) {
         map.remove(ILoggerBean.MESSAGE);
 
-        JSONObject json = null;
+        Map m = null;
         try {
-            json = parseEventToJson(event);
+            m = parseEventToJson(event);
         } catch (ParseException e) {
             map.put(ILoggerBean.MESSAGE, event.getMessage());
         }
 
-        if (isSystemLog(json)) {
-            map.put(ILoggerBean.SERVICE, json.get(ILoggerBean.SERVICE));
-            map.put(ILoggerBean.MESSAGE, json.get(ILoggerBean.MESSAGE));
+        if (LoggerBeanAdapter.isSystemLog(m) && !hasHeaders(m)) {
+            map.put(ILoggerBean.SERVICE, m.get(ILoggerBean.SERVICE));
+            map.put(ILoggerBean.MESSAGE, m.get(ILoggerBean.MESSAGE));
             map.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
-            json = null;
+            m = null;
         }
 
         LinkedHashMap beanMap = null;
         try {
-            if (json != null) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                ILoggerBean bean = LoggerBeanAdapter.getBean(json);
+            if (m != null) {
+                ILoggerBean bean = LoggerBeanAdapter.getBean(m);
                 beanMap = objectMapper.convertValue(bean, LinkedHashMap.class);
             }
         } catch (Exception e) {
             map.put("Unexpected Error LoggerLayout", e.getMessage());
             map.put("Unexpected Error Message", e.getStackTrace());
+            map.put(LEVEL_ATTR_NAME, ILoggerBean.LEVEL_ERROR);
         }
 
-        if(beanMap != null) {
+        if(m != null) {
             map.putAll(beanMap);
             map.remove(ILoggerBean.MDC);
         }
+
+        if (AwsKinesisDataProducer.isConfigured()) {
+            AwsKinesisDataProducer.getInstance().putRecord(map);
+        }
     }
 
-    private JSONObject parseEventToJson(ILoggingEvent event) throws ParseException {
+    private Map parseEventToJson(ILoggingEvent event) throws ParseException {
         JSONParser parser = new JSONParser();
         JSONObject json = (JSONObject) parser.parse(event.getMessage());
 
-        if (isSystemLog(json)) return json;
+        if (LoggerBeanAdapter.isSystemLog(json)) return json;
 
-        boolean isCustomLog = Boolean.parseBoolean(json.get(ILoggerBean.IS_CUSTOM_ERROR_LOG).toString());
-        if (!isCustomLog) {
-            Gson gson = new Gson();
-            json = (JSONObject) parser.parse(gson.toJson(event.getMDCPropertyMap()));
+        int logType = Integer.parseInt(json.getOrDefault(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG).toString());
+        if (LoggerBeanAdapter.isGeneralLog(logType)) {
+            return json;
         }
+
+        Gson gson = new Gson();
+        JSONObject mdc = (JSONObject) parser.parse(gson.toJson(event.getMDCPropertyMap()));
+        json.putAll(mdc);
 
         return json;
     }
 
-    private boolean isSystemLog(JSONObject json) {
+    private boolean hasHeaders(Map json) {
         if (json == null) return false;
-        return Boolean.parseBoolean(json.getOrDefault(ILoggerBean.IS_SYSTEM_LOG, false).toString());
+
+        Object o = json.getOrDefault(ILoggerBean.HEADERS, null);
+        if (o != null) {
+            return true;
+        }
+
+        return false;
     }
 }
 

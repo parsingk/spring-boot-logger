@@ -3,6 +3,7 @@ package com.spring.boot.logger.application;
 import com.spring.boot.logger.AbstractLogger;
 import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.utils.Dispatcher;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -10,7 +11,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 @Slf4j
@@ -41,6 +41,11 @@ public class ApplicationLogger extends AbstractApplicationLogger {
         log.info(json.toJSONString());
     }
 
+    public void systemWarn(String message) {
+        JSONObject json = getSystemLogJson(message);
+        log.warn(json.toJSONString());
+    }
+
     public void systemError(String message) {
         JSONObject json = getSystemLogJson(message);
         log.error(json.toJSONString());
@@ -61,7 +66,7 @@ public class ApplicationLogger extends AbstractApplicationLogger {
         JSONObject json = new JSONObject();
 
         json.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
-        json.put(ILoggerBean.IS_CUSTOM_ERROR_LOG, true);
+        json.put(ILoggerBean.IS_SYSTEM_LOG, true);
         json.put(ILoggerBean.SERVICE, AbstractLogger.getService());
         json.put(ILoggerBean.MESSAGE, message);
         try {

@@ -1,11 +1,12 @@
 package com.spring.boot.logger;
 
+import org.json.simple.parser.ParseException;
+
+import java.util.Map;
+
 public interface ILoggerBean {
     int APPLICATION_LOG = 0;
     int GENERAL_LOG = 1;
-
-    String IS_EXCEPTION_OBJECT = "IS_EXCEPTION_OBJECT";
-    String IS_CUSTOM_ERROR_LOG = "IS_CUSTOM_ERROR_LOG";
 
     String IS_SYSTEM_LOG = "IS_SYSTEM_LOG";
 
@@ -34,4 +35,6 @@ public interface ILoggerBean {
     String MDC = "mdc";
     String JSONPAYLOAD = "jsonpayload";
     String STACKTRACE = "stacktrace";
+
+    ILoggerBean create(Map json) throws ParseException;
 }

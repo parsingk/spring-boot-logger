@@ -5,6 +5,8 @@ import com.spring.boot.logger.application.AbstractApplicationLogger;
 import com.spring.boot.logger.aws.AwsKinesisDataProducer;
 import com.spring.boot.logger.exceptions.ApiException;
 import com.spring.boot.logger.exceptions.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.json.simple.JSONObject;
@@ -12,10 +14,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.MDC;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Map;
@@ -31,7 +30,6 @@ public class JsonLogger extends AbstractApplicationLogger {
 
         JSONObject logJson = new JSONObject();
         logJson.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
-        logJson.put(ILoggerBean.IS_CUSTOM_ERROR_LOG, false);
         long startTimeNanos = System.currentTimeMillis();
         try {
             beforeProcess(joinPoint);
@@ -39,16 +37,12 @@ public class JsonLogger extends AbstractApplicationLogger {
             obj = joinPoint.proceed();
 
             afterProcess(obj, startTimeNanos);
+
             log.info(logJson.toJSONString());
         } catch (Throwable e) {
             logForError(logJson, startTimeNanos, e);
             throw e;
         } finally {
-            if (AwsKinesisDataProducer.isConfigured()) {
-                Map m = MDC.getCopyOfContextMap();
-                m.put(ILoggerBean.TIMESTAMP, this.formatTimestamp());
-                AwsKinesisDataProducer.getInstance().putRecord(m);
-            }
             MDC.clear();
         }
 
@@ -62,7 +56,6 @@ public class JsonLogger extends AbstractApplicationLogger {
 
         JSONObject logJson = new JSONObject();
         logJson.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
-        logJson.put(ILoggerBean.IS_CUSTOM_ERROR_LOG, false);
         long startTimeNanos = System.currentTimeMillis();
         try {
             beforeProcess(joinPoint);
@@ -72,11 +65,6 @@ public class JsonLogger extends AbstractApplicationLogger {
             logForError(logJson, startTimeNanos, e);
             throw e;
         } finally {
-            if (AwsKinesisDataProducer.isConfigured()) {
-                Map m = MDC.getCopyOfContextMap();
-                m.put(ILoggerBean.TIMESTAMP, this.formatTimestamp());
-                AwsKinesisDataProducer.getInstance().putRecord(m);
-            }
             MDC.clear();
         }
 
@@ -84,22 +72,13 @@ public class JsonLogger extends AbstractApplicationLogger {
     }
 
     private void beforeProcess(ProceedingJoinPoint joinPoint) {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        HttpServletRequest request = getRequest();
 
         MDC.put(ILoggerBean.REQUEST_ID, UUID.randomUUID().toString());
         MDC.put(ILoggerBean.REQUEST, maskingData(parseRequestArgs(joinPoint.getArgs())).toString());
         MDC.put(ILoggerBean.METHOD, request.getMethod());
         MDC.put(ILoggerBean.URL, request.getRequestURI());
-
-        HttpServletRequest requestToUse = request;
-        if (!(request instanceof ContentCachingRequestWrapper)) {
-            int length = Math.min(request.getContentLength(), limitPayloadLength);
-            if (length > -1) {
-                requestToUse = new ContentCachingRequestWrapper(request, length);
-            }
-        }
-
-        MDC.put(ILoggerBean.HEADERS, getHeaders(requestToUse).toString());
+        MDC.put(ILoggerBean.HEADERS, getHeaders(request).toString());
     }
 
     private void afterProcess(Object obj, long startTimeNanos) throws ParseException {
@@ -116,7 +95,7 @@ public class JsonLogger extends AbstractApplicationLogger {
     private void logForError(JSONObject logJson, long startTimeNanos, Throwable e) {
         HttpServletResponse response;
         JSONObject errorResponseJson = new JSONObject();
-        int result = ErrorCode.UNEXPECTED_ERROR;
+        int result = AbstractApplicationLogger.getUnexpectedErrorCode();
 
         if(e instanceof ApiException) {
             result = ((ApiException) e).getCode();
@@ -126,7 +105,7 @@ public class JsonLogger extends AbstractApplicationLogger {
             result = ((SQLException) e).getErrorCode();
         }
 
-        errorResponseJson.put("code", result);
+        errorResponseJson.put("result", result);
 
         MDC.put(ILoggerBean.MESSAGE, e.getMessage());
         MDC.put(ILoggerBean.STACKTRACE, Arrays.toString(e.getStackTrace()));

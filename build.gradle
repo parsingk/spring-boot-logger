@@ -1,15 +1,14 @@
 plugins {
-    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id "io.freefair.aspectj" version "6.6.1"
 }
 
 group = 'io.github.parsingk'
 archivesBaseName = "spring-boot-logger"
-version = '0.3.0'
-sourceCompatibility = '11'
+version = '1.0.0'
 
 configurations {
     compileOnly {
@@ -45,7 +44,7 @@ publishing {
 
             groupId = 'io.github.parsingk'
             artifactId = 'spring-boot-logger'
-            version = '0.3.0'
+            version = '1.0.0'
             from components.java
 
             artifact javadocJar
@@ -102,7 +101,8 @@ signing {
 dependencies {
     implementation group: 'org.aspectj', name: 'aspectjrt', version: '1.9.7'
     implementation group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.7'
-    implementation ('org.springframework.boot:spring-boot-starter-web:2.7.5') {
+    implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.0.0'
+    implementation ('org.springframework.boot:spring-boot-starter-web:3.1.0') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
 
@@ -112,14 +112,15 @@ dependencies {
     implementation group: 'ch.qos.logback.contrib', name: 'logback-json-classic', version: '0.1.5'
     implementation group: 'ch.qos.logback.contrib', name: 'logback-jackson', version: '0.1.5'
     implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '7.0.1'
-    implementation group: 'software.amazon.kinesis', name: 'amazon-kinesis-client', version: '2.4.3'
-    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.33'
-    implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
+    implementation group: 'software.amazon.kinesis', name: 'amazon-kinesis-client', version: '2.4.8'
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '2.0'
 
-    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.5'
+    testImplementation (group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '3.1.0') {
+        exclude group: "com.vaadin.external.google", module:"android-json"
+    }
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 }

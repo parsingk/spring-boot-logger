@@ -17,15 +17,21 @@ public class LoggerBean implements ILoggerBean {
     private final Integer logtype = GENERAL_LOG;
     private String service;
     private Map jsonpayload;
+    private Map headers;
 
-    public static LoggerBean create(JSONObject json) {
-        LoggerBean bean = new LoggerBean();
-        bean.setService(json.get(ILoggerBean.SERVICE).toString());
+    public LoggerBean create(Map m) {
+        this.setService(m.get(ILoggerBean.SERVICE).toString());
 
         Gson gson = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
-        Map<String, Object> jsonpayload = gson.fromJson(json.get(ILoggerBean.JSONPAYLOAD).toString(), new TypeToken<HashMap<String, Object>>(){}.getType());
+        Map<String, Object> jsonpayload = gson.fromJson(m.get(ILoggerBean.JSONPAYLOAD).toString(), new TypeToken<HashMap<String, Object>>(){}.getType());
 
-        bean.setJsonpayload(jsonpayload);
-        return bean;
+        this.setJsonpayload(jsonpayload);
+
+        if(m.containsKey(ILoggerBean.HEADERS)) {
+            Map<String, Object> headers = gson.fromJson(m.get(ILoggerBean.HEADERS).toString(), new TypeToken<HashMap<String, Object>>(){}.getType());
+            this.setHeaders(headers);
+        }
+
+        return this;
     }
 }

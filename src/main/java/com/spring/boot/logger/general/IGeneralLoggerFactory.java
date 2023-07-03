@@ -2,5 +2,6 @@ package com.spring.boot.logger.general;
 
 public interface IGeneralLoggerFactory {
 
-    IGeneralLogger getLogger(String type) throws Exception;
+    void setIncludeHeaders(boolean includeHeaders);
+    IGeneralLogger getLogger() throws Exception;
 }
