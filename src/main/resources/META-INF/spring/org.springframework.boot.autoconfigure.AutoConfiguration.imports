@@ -1,0 +1,2 @@
+com.spring.boot.logger.config.DefaultLoggerConfig
+com.spring.boot.logger.application.ApplicationLoggerAspect
