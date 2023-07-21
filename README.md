@@ -34,17 +34,17 @@ public class LogConfig {
     @Bean
     public LoggerConfig config() throws Exception {
         LoggerConfig config = new LoggerConfig(${service});
-        config.setGeneralLoggerIncludeHeaders(${includeHeaders});
-        config.setApplicationLoggerBean(${Bean Class});
-        config.setApplicationLogger(${Logger});
-        config.setMaskingKeys(${List Object});
-        config.setAwsKinesisConfig(new KinesisConfigBuilder()
+        config.setGeneralLoggerIncludeHeaders(${includeHeaders});   // optional
+        config.setApplicationLoggerBean(${Bean Class});             // optional
+        config.setApplicationLogger(${Logger});                     // optional
+        config.setMaskingKeys(${List Object});                      // optional
+        config.setAwsKinesisConfig(new KinesisConfigBuilder()       // optional
                 .region(${region})
                 .streamName(${stream-name})
                 .logType(AwsKinesisLogType.BOTH)
                 .build());
 
-        config.onKinesisStream(${access-key}, ${secret});
+        config.onKinesisStream(${access-key}, ${secret});           // optional
 
 
         return config;
@@ -103,6 +103,9 @@ You can print whatever, wherever.
 **Examples :**  
 You don't have to do with builder patterns. Just create your own class and implements `ILogDTO`.  
 Declare `IGeneralLogger` and use `log()` method. It is only support log level `INFO`.
+
+아래는 예시로 `ILogDTO`를 implement 받기만하고 커스텀하게 처리해도 된다.  
+필자도 아래처럼 쓰고 있진않다. 하나의 방법이다.
 ```
  
 @Getter
@@ -146,7 +149,7 @@ public class LogDTO implements ILogDTO {
     }
 ```
 ## 4. Exceptions
-Recommend to use `ApiException` class or Extend.
+**Recommend to use `ApiException` class or Extend.**
 
 <br>  
 
@@ -165,22 +168,3 @@ Recommend to use `ApiException` class or Extend.
 
 <br>  
 
-### OR 
-
-<br>
-
-#### 2. FilterExceptionHandler (Only in Filter)
-
-```
-  private final ApplicationLogger applicationLogger;
-
-  @Bean
-  public FilterRegistrationBean<FilterExceptionHandler> filterExceptionHandlerBean() {
-      FilterRegistrationBean<FilterExceptionHandler> bean = new FilterRegistrationBean<>();
-      bean.setFilter(new FilterExceptionHandler(applicationLogger));
-      bean.setOrder(-1);
-
-      return bean;
-  }
-
-```
