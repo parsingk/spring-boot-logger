@@ -65,8 +65,8 @@ publishing {
                 developers {
                     developer {
                         id = 'parsingk'
-                        name = 'Jongpil Park'
-                        email = 'whdvlf2006@gmail.com'
+                        name = 'xxx'
+                        email = 'xxx@gmail.com'
                     }
                 }
                 scm {
