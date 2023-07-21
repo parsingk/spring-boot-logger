@@ -1,6 +1,6 @@
 package com.spring.boot.logger.config;
 
-import com.spring.boot.logger.AbstractLoggerBean;
+import com.spring.boot.logger.application.AbstractApplicationLoggerBean;
 import com.spring.boot.logger.application.AbstractApplicationLogger;
 
 import javax.validation.constraints.NotBlank;
@@ -60,7 +60,7 @@ public class LoggerConfig {
      * Default JsonLoggerBean.
      * @param bean
      */
-    public void setApplicationLoggerBean(@NotNull Class<? extends AbstractLoggerBean> bean) {
+    public void setApplicationLoggerBean(@NotNull Class<? extends AbstractApplicationLoggerBean> bean) {
         ApplicationFactoryAdapter.setBean(bean);
     }
 

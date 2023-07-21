@@ -37,37 +37,39 @@ public class LoggerLayout extends JsonLayout {
 
     @Override
     protected void addCustomDataToJsonMap(Map<String, Object> map, ILoggingEvent event) {
-        map.remove(ILoggerBean.MESSAGE);
+        String eventLoggerName = event.getLoggerName();
 
-        Map m = null;
-        try {
-            m = parseEventToJson(event);
-        } catch (ParseException e) {
-            map.put(ILoggerBean.MESSAGE, event.getMessage());
+        if (isDefaultLogs(eventLoggerName)) {
+            return;
         }
 
-        if (LoggerBeanAdapter.isSystemLog(m) && !hasHeaders(m)) {
-            map.put(ILoggerBean.SERVICE, m.get(ILoggerBean.SERVICE));
-            map.put(ILoggerBean.MESSAGE, m.get(ILoggerBean.MESSAGE));
-            map.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
-            m = null;
-        }
+        if (isNeedParseJson(eventLoggerName)) {
+            map.remove(ILoggerBean.MESSAGE);
+            Map<String, Object> m = null;
 
-        LinkedHashMap beanMap = null;
-        try {
-            if (m != null) {
-                ILoggerBean bean = LoggerBeanAdapter.getBean(m);
-                beanMap = objectMapper.convertValue(bean, LinkedHashMap.class);
+            try {
+                m = parseEventToJson(event);
+            } catch (ParseException e) {
+                add(FORMATTED_MESSAGE_ATTR_NAME, this.includeFormattedMessage, event.getFormattedMessage(), map);
             }
-        } catch (Exception e) {
-            map.put("Unexpected Error LoggerLayout", e.getMessage());
-            map.put("Unexpected Error Message", e.getStackTrace());
-            map.put(LEVEL_ATTR_NAME, ILoggerBean.LEVEL_ERROR);
+
+            try {
+                if (m != null) {
+                    ILoggerBean bean = LoggerBeanAdapter.getBean(m, eventLoggerName);
+                    LinkedHashMap beanMap = objectMapper.convertValue(bean, LinkedHashMap.class);
+                    map.putAll(beanMap);
+                    map.remove(ILoggerBean.MDC);
+                }
+            } catch (Exception e) {
+                map.put("Unexpected Error LoggerLayout", e.getMessage());
+                map.put("Unexpected Error Message", e.getStackTrace());
+                map.put(LEVEL_ATTR_NAME, ILoggerBean.LEVEL_ERROR);
+            }
         }
 
-        if(m != null) {
-            map.putAll(beanMap);
-            map.remove(ILoggerBean.MDC);
+        else if (LoggerNamesFactory.isSystemApplicationLogger(eventLoggerName)) {
+            map.put(ILoggerBean.SERVICE, AbstractLogger.getService());
+            map.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
         }
 
         if (AwsKinesisDataProducer.isConfigured()) {
@@ -79,12 +81,7 @@ public class LoggerLayout extends JsonLayout {
         JSONParser parser = new JSONParser();
         JSONObject json = (JSONObject) parser.parse(event.getMessage());
 
-        if (LoggerBeanAdapter.isSystemLog(json)) return json;
-
-        int logType = Integer.parseInt(json.getOrDefault(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG).toString());
-        if (LoggerBeanAdapter.isGeneralLog(logType)) {
-            return json;
-        }
+        if (LoggerNamesFactory.isApplicationLogger(event.getLoggerName()) || LoggerNamesFactory.isGeneralLogger(event.getLoggerName())) return json;
 
         Gson gson = new Gson();
         JSONObject mdc = (JSONObject) parser.parse(gson.toJson(event.getMDCPropertyMap()));
@@ -93,15 +90,16 @@ public class LoggerLayout extends JsonLayout {
         return json;
     }
 
-    private boolean hasHeaders(Map json) {
-        if (json == null) return false;
-
-        Object o = json.getOrDefault(ILoggerBean.HEADERS, null);
-        if (o != null) {
+    private boolean isNeedParseJson(String eventLoggerName) {
+        if (LoggerNamesFactory.isGeneralLogger(eventLoggerName) || LoggerNamesFactory.isJsonApplicationLogger(eventLoggerName) || LoggerNamesFactory.isApplicationLogger(eventLoggerName)) {
             return true;
         }
 
         return false;
+    }
+
+    private boolean isDefaultLogs(String eventLoggerName) {
+        return !isNeedParseJson(eventLoggerName) && !LoggerNamesFactory.isSystemApplicationLogger(eventLoggerName);
     }
 }
 

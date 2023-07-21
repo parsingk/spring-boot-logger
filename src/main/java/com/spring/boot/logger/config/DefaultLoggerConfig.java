@@ -1,6 +1,7 @@
 package com.spring.boot.logger.config;
 
 import com.spring.boot.logger.application.ApplicationLogger;
+import com.spring.boot.logger.application.SystemApplicationLogger;
 import com.spring.boot.logger.general.IGeneralLogger;
 import com.spring.boot.logger.listeners.ApplicationFailedListener;
 import com.spring.boot.logger.listeners.ApplicationReadyListener;
@@ -17,6 +18,8 @@ public class DefaultLoggerConfig {
 
     private final DefaultListableBeanFactory factory;
 
+    private final SystemApplicationLogger systemApplicationLogger = new SystemApplicationLogger();
+
     @Bean
     public ApplicationLogger applicationLogger() {
         factory.getBean(LoggerConfig.class);
@@ -30,21 +33,21 @@ public class DefaultLoggerConfig {
 
     @Bean
     public ApplicationStartedListener applicationStartedListener() {
-        return new ApplicationStartedListener(applicationLogger());
+        return new ApplicationStartedListener(systemApplicationLogger);
     }
 
     @Bean
     public ApplicationReadyListener applicationReadyListener() {
-        return new ApplicationReadyListener(applicationLogger());
+        return new ApplicationReadyListener(systemApplicationLogger);
     }
 
     @Bean
     public ApplicationFailedListener applicationFailedListener() {
-        return new ApplicationFailedListener(applicationLogger());
+        return new ApplicationFailedListener(systemApplicationLogger);
     }
 
     @Bean
     public ApplicationStoppedListener applicationStoppedListener() {
-        return new ApplicationStoppedListener(applicationLogger());
+        return new ApplicationStoppedListener(systemApplicationLogger);
     }
 }

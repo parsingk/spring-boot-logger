@@ -29,7 +29,7 @@ public class JsonLogger extends AbstractApplicationLogger {
         Object obj = null;
 
         JSONObject logJson = new JSONObject();
-        logJson.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
+//        logJson.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
         long startTimeNanos = System.currentTimeMillis();
         try {
             beforeProcess(joinPoint);
@@ -55,7 +55,7 @@ public class JsonLogger extends AbstractApplicationLogger {
         Object obj = null;
 
         JSONObject logJson = new JSONObject();
-        logJson.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
+//        logJson.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
         long startTimeNanos = System.currentTimeMillis();
         try {
             beforeProcess(joinPoint);

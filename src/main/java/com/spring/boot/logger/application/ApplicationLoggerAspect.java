@@ -1,5 +1,6 @@
 package com.spring.boot.logger.application;
 
+import com.spring.boot.logger.LoggerNamesFactory;
 import com.spring.boot.logger.config.ApplicationFactoryAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -21,6 +22,7 @@ public class ApplicationLoggerAspect {
 
     public ApplicationLoggerAspect() {
         this.logger = ApplicationFactoryAdapter.getLogger();
+        LoggerNamesFactory.setApplicationJsonLoggerName(this.logger.getClass().getName());
     }
 
     @Pointcut("within(@(@org.springframework.stereotype.Controller *) *) || @within(org.springframework.stereotype.Controller)")

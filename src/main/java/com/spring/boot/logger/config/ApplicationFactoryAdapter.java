@@ -1,6 +1,6 @@
 package com.spring.boot.logger.config;
 
-import com.spring.boot.logger.AbstractLoggerBean;
+import com.spring.boot.logger.application.AbstractApplicationLoggerBean;
 import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.application.*;
 import org.json.simple.parser.ParseException;
@@ -30,7 +30,7 @@ public class ApplicationFactoryAdapter {
      *
      * @param bean
      */
-    static void setBean(Class<? extends AbstractLoggerBean> bean) {
+    static void setBean(Class<? extends AbstractApplicationLoggerBean> bean) {
         loggerBeanFactory.setBean(bean);
     }
 

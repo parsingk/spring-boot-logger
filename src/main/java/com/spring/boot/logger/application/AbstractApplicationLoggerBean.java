@@ -1,22 +1,16 @@
-package com.spring.boot.logger;
+package com.spring.boot.logger.application;
 
+import com.spring.boot.logger.AbstractLogger;
+import com.spring.boot.logger.ILoggerBean;
 import org.json.simple.parser.ParseException;
 
 import java.util.Map;
 
-public abstract class AbstractLoggerBean implements ILoggerBean {
+public abstract class AbstractApplicationLoggerBean implements ILoggerBean {
 
-    private String service;
+    private String service = AbstractLogger.getService();
 
     private Integer logtype = ILoggerBean.APPLICATION_LOG;
-
-    public void setService(String service) {
-        this.service = service;
-    }
-
-    public void setLogtype(Integer logtype) {
-        this.logtype = logtype;
-    }
 
     public String getService() {
         return service;
