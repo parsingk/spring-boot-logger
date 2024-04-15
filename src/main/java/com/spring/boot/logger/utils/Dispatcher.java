@@ -103,14 +103,14 @@ public class Dispatcher {
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put(STATUS, response.getStatus());
 
-        Map<String, Object> responseHeaderMap = new HashMap<>();
-        Collection<String> responseHeaderNameList = response.getHeaderNames();
-        responseHeaderNameList.forEach(v -> responseHeaderMap.put(v, response.getHeader(v)));
-        responseMap.put(HEADER, responseHeaderMap);
+//        Map<String, Object> responseHeaderMap = new HashMap<>();
+//        Collection<String> responseHeaderNameList = response.getHeaderNames();
+//        responseHeaderNameList.forEach(v -> responseHeaderMap.put(v, response.getHeader(v)));
+//        responseMap.put(HEADER, responseHeaderMap);
 
-        byte[] bytes = response.getContentAsByteArray();
-        Object responseBody = objectMapper.readValue(bytes, Object.class);
-        responseMap.put(BODY, responseBody);
+//        byte[] bytes = response.getContentAsByteArray();
+//        Object responseBody = objectMapper.readValue(bytes, Object.class);
+//        responseMap.put(BODY, responseBody);
 
         return responseMap;
     }

@@ -24,6 +24,7 @@ public class ApplicationLoggerBean extends AbstractApplicationLoggerBean {
     private Map headers;
     private String method;
     private Map request;
+    private Integer status;
 
     public ApplicationLoggerBean create(Map m) throws ParseException {
         String message = "";
@@ -56,6 +57,10 @@ public class ApplicationLoggerBean extends AbstractApplicationLoggerBean {
         } else {
             message = this.getMethod() + " " + this.getUrl() + " " + message + " " + userAgent;
             this.setMessage(message);
+        }
+
+        if (InputValidator.isNotNull(m.get(ILoggerBean.STATUS))) {
+            this.setStatus(((Long) m.get(ILoggerBean.STATUS)).intValue());
         }
 
         return this;

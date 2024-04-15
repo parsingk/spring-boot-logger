@@ -4,14 +4,17 @@ import com.spring.boot.logger.AbstractLogger;
 import com.spring.boot.logger.ILoggerBean;
 import com.spring.boot.logger.utils.Dispatcher;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.util.Arrays;
+import java.util.Map;
 
 @Slf4j
 public class ApplicationLogger extends AbstractApplicationLogger {
@@ -45,7 +48,7 @@ public class ApplicationLogger extends AbstractApplicationLogger {
         json.put(ILoggerBean.MESSAGE, message);
         try {
             HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-//            HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getResponse();
+
 
             ContentCachingRequestWrapper requestToCaching = new ContentCachingRequestWrapper(request);
 
@@ -54,12 +57,13 @@ public class ApplicationLogger extends AbstractApplicationLogger {
             json.put(ILoggerBean.URL, request.getRequestURI());
             json.put(ILoggerBean.REQUEST, maskingData(Dispatcher.getRequestData(requestToCaching)).toString());
 
-//            if (response != null) {
-//                ContentCachingResponseWrapper responseToCaching = new ContentCachingResponseWrapper(response);
-//                Map<String, Object> map = Dispatcher.responseMap(responseToCaching);
+            HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getResponse();
+            if (response != null) {
+                ContentCachingResponseWrapper responseToCaching = new ContentCachingResponseWrapper(response);
+                Map<String, Object> map = Dispatcher.responseMap(responseToCaching);
 //                json.put(ILoggerBean.RESPONSE, map.get(Dispatcher.BODY));
-//                json.put(ILoggerBean.STATUS, map.get(Dispatcher.STATUS));
-//            }
+                json.put(ILoggerBean.STATUS, map.get(Dispatcher.STATUS));
+            }
 
         } catch (ParseException e) {
             json.put(ILoggerBean.ERROR_MESSAGE, e.getMessage());
