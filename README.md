@@ -10,7 +10,7 @@ This is based on java 17 and spring boot 3.
 ## 1. Setup
 
 Add @EnableAspectJAutoProxy in your main class
-```
+```java
 @EnableAspectJAutoProxy
 @SpringBootApplication
 public class Application {
@@ -25,24 +25,27 @@ public class Application {
 
 ### Log Configuration Settings.
 
-```
+```java
 @Configuration
 public class LogConfig {
 
     @Bean
     public LoggerConfig config() throws Exception {
-        LoggerConfig config = new LoggerConfig(${service});
-        config.setGeneralLoggerIncludeHeaders(${includeHeaders});   // optional
-        config.setApplicationLoggerBean(${Bean Class});             // optional
-        config.setApplicationLogger(${Logger});                     // optional
-        config.setMaskingKeys(${List Object});                      // optional
-        config.setAwsKinesisConfig(new KinesisConfigBuilder()       // optional
+        LoggerConfig config = new LoggerConfigBuilder(${service})
+            .generalLoggerIncludeHeaders(${includeHeaders}) // generalLogger header 값 포함 여부. default true.
+            .applicationLoggerBean(${Bean Class}) // 로그 명세서.
+            .applicationLogger(${Logger}) // aop doAround 함수 구현한 로거 객체.
+            .maskingKeys(${List Object})
+            .objectMapper(${Custom ObjectMapper Object}) // 
+            .build();
+        
+        config.setAwsKinesisConfig(new KinesisConfigBuilder()   // kinesis data streams configuration.
                 .region(${region})
                 .streamName(${stream-name})
-                .logType(AwsKinesisLogType.BOTH)
+                .logType(AwsKinesisLogType.BOTH)    // kinesis로 인게임만 보낼지, 시스템로그만 보낼지, 둘다 보낼지.
                 .build());
 
-        config.onKinesisStream(${access-key}, ${secret});           // optional
+        config.onKinesisStream(${access-key}, ${secret});
 
 
         return config;
@@ -63,7 +66,7 @@ public class LogConfig {
 <br>
   
 ### logback-spring.xml console appender settings.
-```
+```xml
     <appender name="${your-appender-name}" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
             <charset>UTF-8</charset>
@@ -84,7 +87,7 @@ public class LogConfig {
  It is print API Request, Response Log by @RestController annotation.  
 If you do not want print log, use @NoApplicationLog on your method. 
 
-```
+```java
     @NoApplicationLog
     @RequestMapping(value = "/")
     public ResponseEntity liveness() {
@@ -104,7 +107,7 @@ Declare `IGeneralLogger` and use `log()` method. It is only support log level `I
 
 아래는 예시로 `ILogDTO`를 implement 받기만하고 커스텀하게 처리해도 된다.  
 필자도 아래처럼 쓰고 있진않다. 하나의 방법이다.
-```
+```java
  
 @Getter
 @SuperBuilder
@@ -114,7 +117,7 @@ public class LogDTO implements ILogDTO {
 }
 
 ```
-```
+```java
     public class AuthLogDTO {
     
         @Getter
@@ -125,7 +128,7 @@ public class LogDTO implements ILogDTO {
         }
     }
 ```
-``` 
+```java
     private final IGeneralLogger logger;
     
     public JSONObject login(JSONObject object) throws Exception {
@@ -156,7 +159,7 @@ public class LogDTO implements ILogDTO {
 
 #### 1. Use ApplicationLogger.  (Recommended)
 
-```
+```java
  private final ApplicationLogger applicationLogger;
  
  applicationLogger.info(String message); 

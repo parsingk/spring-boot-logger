@@ -3,56 +3,22 @@ package com.spring.boot.logger.application;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.boot.logger.AbstractLogger;
-import com.spring.boot.logger.ILoggerBean;
-import com.spring.boot.logger.utils.InputValidator;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
-import org.aspectj.lang.ProceedingJoinPoint;
+import org.apache.logging.log4j.util.Strings;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.slf4j.MDC;
+import org.springframework.util.StreamUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public abstract class AbstractApplicationLogger extends AbstractLogger implements IApplicationLogger {
 
-    protected final ObjectMapper objectMapper = ObjectMapperBuilder.build();
-    private static List<String> maskingKeys;
+    protected static ObjectMapper objectMapper = ObjectMapperBuilder.build();
 
-    private static int UNEXPECTED_ERROR_CODE = 500;
-
-
-    public static void setMaskingKeys(List<String> maskingKeys) {
-        if (InputValidator.isNull(AbstractApplicationLogger.maskingKeys)) {
-            AbstractApplicationLogger.maskingKeys = maskingKeys;
-        }
-    }
-
-    public static List<String> getMaskingKeys() {
-        return maskingKeys;
-    }
-
-    public static void setUnexpectedErrorCode(int errorCode) {
-        AbstractApplicationLogger.UNEXPECTED_ERROR_CODE = errorCode;
-    }
-
-    public static int getUnexpectedErrorCode() {
-        return AbstractApplicationLogger.UNEXPECTED_ERROR_CODE;
-    }
-
-    public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        MDC.put(ILoggerBean.SERVICE, AbstractLogger.getService());
-        MDC.put(ILoggerBean.LOG_TYPE, String.valueOf(ILoggerBean.APPLICATION_LOG));
-        return MDC.getCopyOfContextMap();
-    }
-
-    public Object errorAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        MDC.put(ILoggerBean.SERVICE, AbstractLogger.getService());
-        MDC.put(ILoggerBean.LOG_TYPE, String.valueOf(ILoggerBean.APPLICATION_LOG));
-        return MDC.getCopyOfContextMap();
-    }
-
-    protected Map parseRequestArgs(Object[] args) {
+    protected JSONObject parseRequestArgs(Object[] args) {
         JSONObject m = new JSONObject();
         Iterator iterator;
         Object key;
@@ -72,12 +38,59 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
         return m;
     }
 
-    protected Map maskingData(Map data) {
+    @Deprecated
+    protected JSONObject parseRequestArgs(HttpServletRequest request) {
+        JSONObject m = new JSONObject();
+        try {
+            Map params = request.getParameterMap();
+            if (!params.isEmpty()) {
+                params.forEach((key, value) -> {
+                    try {
+                        String[] values = (String[]) value;
+                        if (key.equals("Packet")) {
+                            m.putAll(new org.json.JSONObject(values[0]).toMap());
+                        } else {
+                            m.put(key, getParamValue(values));
+                        }
+                    } catch (Exception e) {
+                    }
+                });
+            }
+
+            ServletInputStream is = request.getInputStream();
+            String body = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
+            if (!body.isEmpty()) {
+                m.putAll(objectMapper.convertValue(body, org.json.JSONObject.class).toMap());
+            }
+
+            Object bodyData = request.getAttribute("$body_data");
+            if (bodyData != null){
+                m.putAll(objectMapper.convertValue(bodyData, HashMap.class));
+            }
+
+        } catch (Exception ignored) {
+        }
+
+        return m;
+    }
+
+    private String getParamValue(String[] values) {
+        String v = "";
+        for (String value : values) {
+            v = v + value + ",";
+        }
+
+        return v.substring(0, v.length() - 1);
+    }
+
+    protected JSONObject maskingData(JSONObject data) {
+        List<String> maskingKeys = ApplicationLoggerConfigurer.maskingKeys;
+
         if (maskingKeys == null) return data;
 
         JSONObject copyData = new JSONObject(data);
         for (String maskingKey : maskingKeys) {
-            if (copyData.containsKey(maskingKey)) {
+            if (copyData.containsKey(maskingKey) && !Objects.isNull(copyData.get(maskingKey)) && Strings.isNotBlank(copyData.get(maskingKey).toString())) {
                 copyData.replace(maskingKey, "*******");
             }
         }
@@ -85,14 +98,18 @@ public abstract class AbstractApplicationLogger extends AbstractLogger implement
     }
 
     protected String parseJSONString(Object obj) throws ParseException {
+
         JSONParser parser = new JSONParser();
         try {
             if (obj == null) {
                 throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION);
             }
 
-            JSONObject json = (JSONObject) parser.parse(objectMapper.writeValueAsString(obj));
-            return json.toString();
+            String str;
+            Object jsonObj = parser.parse(objectMapper.writeValueAsString(obj));
+            str = jsonObj.toString();
+
+            return str;
         } catch (ClassCastException e) {
             if (obj == null) throw new ParseException(ParseException.ERROR_UNEXPECTED_EXCEPTION, e);
             JSONObject json;

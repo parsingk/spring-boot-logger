@@ -25,6 +25,7 @@ public interface ILoggerBean {
     String BODY = "body";
     String PARAMETER = "parameter";
     String EXECUTION_TIME = "executiontime";
+    String REQUEST_TIME = "requestTime";
 
     String LEVEL_DEBUG = "DEBUG";
     String LEVEL_INFO = "INFO";
@@ -32,9 +33,12 @@ public interface ILoggerBean {
 
     String MESSAGE = "message";
     String ERROR_MESSAGE = "error_message";
+    String ERROR_DETAIL_MESSAGE = "error_detail_message";
     String MDC = "mdc";
     String JSONPAYLOAD = "jsonpayload";
     String STACKTRACE = "stacktrace";
 
     ILoggerBean create(Map json) throws ParseException;
+
+    Integer getLogtype();
 }

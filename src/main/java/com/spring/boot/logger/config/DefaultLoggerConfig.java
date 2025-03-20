@@ -7,10 +7,13 @@ import com.spring.boot.logger.listeners.ApplicationFailedListener;
 import com.spring.boot.logger.listeners.ApplicationReadyListener;
 import com.spring.boot.logger.listeners.ApplicationStartedListener;
 import com.spring.boot.logger.listeners.ApplicationStoppedListener;
+import com.spring.boot.logger.utils.RequestContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.context.annotation.ApplicationScope;
+import org.springframework.web.context.annotation.RequestScope;
 
 @Configuration
 @RequiredArgsConstructor
@@ -30,6 +33,13 @@ public class DefaultLoggerConfig {
     public IGeneralLogger generalLogger() throws Exception {
         return GeneralFactoryAdapter.getLogger();
     }
+
+    @Bean
+    @RequestScope
+    public RequestContext requestContext() {
+        return new RequestContext();
+    }
+
 
     @Bean
     public ApplicationStartedListener applicationStartedListener() {

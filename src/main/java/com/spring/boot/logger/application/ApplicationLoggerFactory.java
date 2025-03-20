@@ -8,16 +8,16 @@ import java.util.concurrent.ConcurrentMap;
 
 public class ApplicationLoggerFactory implements IApplicationLoggerFactory {
 
-    AbstractApplicationLogger logger = null;
+    AbstractApplicationLoggerAspect logger = null;
 
-    public void setLogger(AbstractApplicationLogger logger) {
+    public void setLogger(AbstractApplicationLoggerAspect logger) {
         if (this.logger == null) {
             this.logger = logger;
         }
     }
 
     @Override
-    public IApplicationLogger getLogger() {
+    public AbstractApplicationLoggerAspect getLogger() {
         if (logger == null) {
             return new JsonLogger();
         }

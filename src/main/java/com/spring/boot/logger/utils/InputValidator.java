@@ -14,7 +14,7 @@ public class InputValidator {
         return str == null;
     }
 
-    public static boolean isBlankWithNull(String str) {
+    public static boolean isBlankOrNull(String str) {
         return str == null || str.isBlank();
     }
 

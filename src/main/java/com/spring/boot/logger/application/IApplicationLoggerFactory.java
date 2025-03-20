@@ -2,7 +2,7 @@ package com.spring.boot.logger.application;
 
 public interface IApplicationLoggerFactory {
 
-    void setLogger(AbstractApplicationLogger logger);
+    void setLogger(AbstractApplicationLoggerAspect logger);
 
-    IApplicationLogger getLogger();
+    AbstractApplicationLoggerAspect getLogger();
 }

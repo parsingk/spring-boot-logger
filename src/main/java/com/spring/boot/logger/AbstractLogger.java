@@ -1,8 +1,10 @@
 package com.spring.boot.logger;
 
 
+import com.google.gson.Gson;
 import com.spring.boot.logger.utils.InputValidator;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -16,24 +18,14 @@ import java.util.TimeZone;
 
 public abstract class AbstractLogger implements ILogger {
 
-    private static String service;
     private final DateFormat format;
     protected final int limitPayloadLength = 10 * 1024; // 10kb
 
+    protected Gson gson = new Gson();
+
     public AbstractLogger() {
-        this.format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        TimeZone defaultTimeZone = TimeZone.getDefault();
-        this.format.setTimeZone(defaultTimeZone);
-    }
-
-    public static String getService() {
-        return service;
-    }
-
-    public static void setService(String service) {
-        if (InputValidator.isBlankWithNull(AbstractLogger.service)) {
-            AbstractLogger.service = service.toLowerCase();
-        }
+        this.format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        this.format.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
     }
 
     protected HttpServletRequest getRequest() {

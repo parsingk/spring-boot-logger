@@ -25,6 +25,7 @@ public class ApplicationLoggerBean extends AbstractApplicationLoggerBean {
     private String method;
     private Map request;
     private Integer status;
+    private Map response;
 
     public ApplicationLoggerBean create(Map m) throws ParseException {
         String message = "";
@@ -61,6 +62,11 @@ public class ApplicationLoggerBean extends AbstractApplicationLoggerBean {
 
         if (InputValidator.isNotNull(m.get(ILoggerBean.STATUS))) {
             this.setStatus(((Long) m.get(ILoggerBean.STATUS)).intValue());
+        }
+
+        if (InputValidator.isNotNull(m.get(ILoggerBean.RESPONSE))) {
+            Map<String, Object> responseJson = gson.fromJson(m.get(ILoggerBean.RESPONSE).toString(), new TypeToken<HashMap<String, Object>>(){}.getType());
+            this.setResponse(responseJson);
         }
 
         return this;

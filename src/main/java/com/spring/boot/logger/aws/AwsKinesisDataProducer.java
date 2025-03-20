@@ -8,8 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -66,6 +70,69 @@ public class AwsKinesisDataProducer {
             }
 
             return putRecordResponse;
+        }).join();
+    }
+
+    public void putRecord(ILoggerBean sendObject) {
+        int logType = sendObject.getLogtype();
+
+        if (!isValidLogType(logType)) {
+            return;
+        }
+
+        byte[] bytes = this.toBytes(sendObject);
+
+        if (InputValidator.isNull(bytes)) { return; }
+
+        PutRecordRequest request = PutRecordRequest.builder()
+                .partitionKey(this.getRandomPartitionKey())
+                .streamName(streamName)
+                .data(SdkBytes.fromByteArray(bytes))
+                .build();
+
+        kinesisAsyncClient.putRecord(request).handleAsync((putRecordResponse, throwable) -> {
+            if (throwable != null) {
+                logger.error(throwable.getMessage(), throwable);
+            }
+
+            return putRecordResponse;
+        }).join();
+    }
+
+    public void putRecords(List<ILoggerBean> sendObjects) {
+        if (sendObjects == null || sendObjects.isEmpty()) return;
+
+        List<PutRecordsRequestEntry> entries = new ArrayList<>();
+        for (ILoggerBean sendObject : sendObjects) {
+            int logType = sendObject.getLogtype();
+
+            if (!isValidLogType(logType)) {
+                continue;
+            }
+
+            byte[] bytes = this.toBytes(sendObject);
+
+            if (InputValidator.isNull(bytes)) { continue; }
+
+            PutRecordsRequestEntry entry = PutRecordsRequestEntry.builder()
+                    .partitionKey(this.getRandomPartitionKey())
+                    .data(SdkBytes.fromByteArray(bytes))
+                    .build();
+
+            entries.add(entry);
+        }
+
+        PutRecordsRequest request = PutRecordsRequest.builder()
+                .streamName(streamName)
+                .records(entries)
+                .build();
+
+        kinesisAsyncClient.putRecords(request).handleAsync((putRecordsResponse, throwable) -> {
+            if (throwable != null) {
+                logger.error(throwable.getMessage(), throwable);
+            }
+
+            return putRecordsResponse;
         }).join();
     }
 

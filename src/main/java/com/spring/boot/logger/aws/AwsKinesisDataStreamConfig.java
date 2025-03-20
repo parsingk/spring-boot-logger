@@ -71,7 +71,7 @@ public class AwsKinesisDataStreamConfig {
             throw new Exception("[AWS Kinesis] Region is not valid");
         }
 
-        if (InputValidator.isBlankWithNull(streamName)) {
+        if (InputValidator.isBlankOrNull(streamName)) {
             throw new Exception("[AWS Kinesis] StreamName must not to be null or blank");
         }
 

@@ -4,7 +4,10 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.contrib.json.classic.JsonLayout;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.ToNumberPolicy;
 import com.spring.boot.logger.aws.AwsKinesisDataProducer;
+import com.spring.boot.logger.config.LoggerConfig;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -15,6 +18,7 @@ import java.util.Map;
 public class LoggerLayout extends JsonLayout {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Gson gson = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
 
     @Override
     protected Map toJsonMap(ILoggingEvent event) {
@@ -48,16 +52,21 @@ public class LoggerLayout extends JsonLayout {
             Map<String, Object> m = null;
 
             try {
-                m = parseEventToJson(event);
-            } catch (ParseException e) {
+                m = parseEventToMap(event);
+            } catch (Exception e) {
                 add(FORMATTED_MESSAGE_ATTR_NAME, this.includeFormattedMessage, event.getFormattedMessage(), map);
             }
 
             try {
                 if (m != null) {
-                    ILoggerBean bean = LoggerBeanAdapter.getBean(m, eventLoggerName);
-                    LinkedHashMap beanMap = objectMapper.convertValue(bean, LinkedHashMap.class);
-                    map.putAll(beanMap);
+                    if (LoggerNamesFactory.isGeneralLogger(eventLoggerName)) {
+                        map.putAll(m);
+                    } else {
+                        ILoggerBean bean = LoggerBeanAdapter.getBean(m, eventLoggerName);
+                        LinkedHashMap beanMap = objectMapper.convertValue(bean, LinkedHashMap.class);
+                        map.putAll(beanMap);
+                    }
+
                     map.remove(ILoggerBean.MDC);
                 }
             } catch (Exception e) {
@@ -68,30 +77,30 @@ public class LoggerLayout extends JsonLayout {
         }
 
         else if (LoggerNamesFactory.isSystemApplicationLogger(eventLoggerName)) {
-            map.put(ILoggerBean.SERVICE, AbstractLogger.getService());
+            map.put(ILoggerBean.SERVICE, LoggerConfig.getService());
             map.put(ILoggerBean.LOG_TYPE, ILoggerBean.APPLICATION_LOG);
         }
 
-        if (AwsKinesisDataProducer.isConfigured()) {
+        if (AwsKinesisDataProducer.isConfigured() && !LoggerNamesFactory.isGeneralLogger(eventLoggerName)) {
             AwsKinesisDataProducer.getInstance().putRecord(map);
         }
     }
 
-    private Map parseEventToJson(ILoggingEvent event) throws ParseException {
-        JSONParser parser = new JSONParser();
-        JSONObject json = (JSONObject) parser.parse(event.getMessage());
+    private Map<String, Object> parseEventToMap(ILoggingEvent event) {
+        LinkedHashMap map = gson.fromJson(event.getMessage(), LinkedHashMap.class);
+        if (LoggerNamesFactory.isApplicationLogger(event.getLoggerName())
+                || LoggerNamesFactory.isGeneralLogger(event.getLoggerName())) {
+            return map;
+        }
 
-        if (LoggerNamesFactory.isApplicationLogger(event.getLoggerName()) || LoggerNamesFactory.isGeneralLogger(event.getLoggerName())) return json;
+        map.putAll(event.getMDCPropertyMap());
 
-        Gson gson = new Gson();
-        JSONObject mdc = (JSONObject) parser.parse(gson.toJson(event.getMDCPropertyMap()));
-        json.putAll(mdc);
-
-        return json;
+        return map;
     }
 
     private boolean isNeedParseJson(String eventLoggerName) {
-        if (LoggerNamesFactory.isGeneralLogger(eventLoggerName) || LoggerNamesFactory.isJsonApplicationLogger(eventLoggerName) || LoggerNamesFactory.isApplicationLogger(eventLoggerName)) {
+        if (LoggerNamesFactory.isGeneralLogger(eventLoggerName) || LoggerNamesFactory.isJsonApplicationLogger(eventLoggerName)
+                || LoggerNamesFactory.isApplicationLogger(eventLoggerName)) {
             return true;
         }
 

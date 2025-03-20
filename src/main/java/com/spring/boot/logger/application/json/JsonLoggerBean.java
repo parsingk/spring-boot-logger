@@ -30,6 +30,7 @@ public class JsonLoggerBean extends AbstractApplicationLoggerBean {
     private String errorMessage;
     private String stacktrace;
     private String executiontime;
+    private String requestTime;
 
     public JsonLoggerBean create(Map m) throws ParseException {
         String message = "";
@@ -91,6 +92,10 @@ public class JsonLoggerBean extends AbstractApplicationLoggerBean {
 
         if (InputValidator.isNotNull(m.get(ILoggerBean.STACKTRACE))) {
             this.setStacktrace(m.get(ILoggerBean.STACKTRACE).toString());
+        }
+
+        if (InputValidator.isNotNull(m.get(ILoggerBean.REQUEST_TIME))) {
+            this.setRequestTime(m.get(ILoggerBean.REQUEST_TIME).toString());
         }
 
         return this;

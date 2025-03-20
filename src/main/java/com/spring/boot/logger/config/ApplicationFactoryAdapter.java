@@ -14,6 +14,8 @@ public class ApplicationFactoryAdapter {
 
     private static final IApplicationLoggerBeanFactory loggerBeanFactory = new ApplicationLoggerBeanFactory();
 
+    protected static final IApplicationLoggerConfigurer loggerInitializer = new ApplicationLoggerConfigurer();
+
 
 
     /**
@@ -21,7 +23,7 @@ public class ApplicationFactoryAdapter {
      *
      * @param logger
      */
-    static void setLogger(AbstractApplicationLogger logger) {
+    static void setLogger(AbstractApplicationLoggerAspect logger) {
         loggerFactory.setLogger(logger);
     }
 
@@ -34,7 +36,7 @@ public class ApplicationFactoryAdapter {
         loggerBeanFactory.setBean(bean);
     }
 
-    public static IApplicationLogger getLogger() {
+    public static AbstractApplicationLoggerAspect getLogger() {
         return loggerFactory.getLogger();
     }
 
