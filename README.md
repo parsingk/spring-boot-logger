@@ -32,20 +32,20 @@ public class LogConfig {
     @Bean
     public LoggerConfig config() throws Exception {
         LoggerConfig config = new LoggerConfigBuilder(${service})
-            .generalLoggerIncludeHeaders(${includeHeaders}) // generalLogger header 값 포함 여부. default true.
-            .applicationLoggerBean(${Bean Class}) // 로그 명세서.
-            .applicationLogger(${Logger}) // aop doAround 함수 구현한 로거 객체.
-            .maskingKeys(${List Object})
-            .objectMapper(${Custom ObjectMapper Object}) // 
+            .generalLoggerIncludeHeaders(${includeHeaders})     // (optional) generalLogger header 값 포함 여부. default true.
+            .applicationLoggerBean(${Bean Class})               // (optional) 로그 명세서.
+            .applicationLogger(${Logger})                       // (optional) aop doAround 함수 구현한 로거 객체.
+            .maskingKeys(${List Object})                        // (optional) 로그 마스킹 처리할 key ex) password
+            .objectMapper(${Custom ObjectMapper Object})        // (optional) 
             .build();
         
-        config.setAwsKinesisConfig(new KinesisConfigBuilder()   // kinesis data streams configuration.
+        config.setAwsKinesisConfig(new KinesisConfigBuilder()   // (optional) kinesis data streams configuration.
                 .region(${region})
                 .streamName(${stream-name})
-                .logType(AwsKinesisLogType.BOTH)    // kinesis로 인게임만 보낼지, 시스템로그만 보낼지, 둘다 보낼지.
+                .logType(AwsKinesisLogType.BOTH)                // kinesis로 인게임만 보낼지, 시스템로그만 보낼지, 둘다 보낼지.
                 .build());
 
-        config.onKinesisStream(${access-key}, ${secret});
+        config.onKinesisStream(${access-key}, ${secret}); // (optional)
 
 
         return config;
