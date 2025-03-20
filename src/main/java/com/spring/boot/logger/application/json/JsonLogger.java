@@ -23,13 +23,6 @@ import java.util.UUID;
 @Slf4j
 public class JsonLogger extends AbstractApplicationLoggerAspect {
 
-    /**
-     * Controller Method AOP Around
-     *
-     * @param joinPoint
-     * @return
-     * @throws Throwable
-     */
     @Override
     public Object doAround(ProceedingJoinPoint joinPoint, RequestContext requestContext) throws Throwable {
         MDC.put(ILoggerBean.SERVICE, LoggerConfig.getService());
@@ -59,14 +52,6 @@ public class JsonLogger extends AbstractApplicationLoggerAspect {
         return obj;
     }
 
-    /**
-     * Controller Method AOP Around (Only For Error)
-     * will be deprecated soon
-     *
-     * @param joinPoint
-     * @return
-     * @throws Throwable
-     */
     @Override
     public Object errorAround(ProceedingJoinPoint joinPoint, RequestContext requestContext) throws Throwable {
         MDC.put(ILoggerBean.SERVICE, LoggerConfig.getService());
@@ -91,14 +76,7 @@ public class JsonLogger extends AbstractApplicationLoggerAspect {
 
         return obj;
     }
-
-    /**
-     * ExceptionAdvice Method AOP Around
-     *
-     * @param joinPoint
-     * @return
-     * @throws Throwable
-     */
+    
     @Override
     public Object doExceptionHandlerAround(ProceedingJoinPoint joinPoint, RequestContext requestContext) throws Throwable {
         MDC.put(ILoggerBean.SERVICE, LoggerConfig.getService());
