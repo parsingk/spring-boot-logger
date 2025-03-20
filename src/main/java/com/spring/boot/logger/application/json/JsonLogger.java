@@ -76,7 +76,7 @@ public class JsonLogger extends AbstractApplicationLoggerAspect {
 
         return obj;
     }
-    
+
     @Override
     public Object doExceptionHandlerAround(ProceedingJoinPoint joinPoint, RequestContext requestContext) throws Throwable {
         MDC.put(ILoggerBean.SERVICE, LoggerConfig.getService());
